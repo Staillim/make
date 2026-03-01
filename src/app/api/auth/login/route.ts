@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export async function POST(request: Request) {
   try {
@@ -12,18 +15,59 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: Verify password hash against database
-    // TODO: Create session/JWT
+    // Find user by email
+    const { data: usuario, error } = await supabaseAdmin
+      .from('usuarios')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    const usuario = {
-      id_usuario: crypto.randomUUID(),
-      nombre: "Usuario Demo",
-      email,
-      plan: "free" as const,
-    };
+    if (error || !usuario) {
+      return NextResponse.json(
+        { error: "Credenciales inválidas" },
+        { status: 401 }
+      );
+    }
 
-    return NextResponse.json(usuario);
-  } catch {
+    // Verify password hash against database
+    const passwordMatch = await bcrypt.compare(password, usuario.password_hash);
+
+    if (!passwordMatch) {
+      return NextResponse.json(
+        { error: "Credenciales inválidas" },
+        { status: 401 }
+      );
+    }
+
+    // Create session/JWT
+    const token = jwt.sign(
+      {
+        userId: usuario.id_usuario,
+        email: usuario.email,
+        plan: usuario.plan,
+      },
+      process.env.NEXTAUTH_SECRET || 'fallback-secret',
+      { expiresIn: '7d' }
+    );
+
+    const response = NextResponse.json({
+      id_usuario: usuario.id_usuario,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      plan: usuario.plan,
+    });
+
+    // Set HTTP-only cookie for authentication
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Login error:', error);
     return NextResponse.json(
       { error: "Error al iniciar sesión" },
       { status: 500 }
