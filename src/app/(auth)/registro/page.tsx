@@ -1,5 +1,5 @@
-import { RegisterForm } from "@/components/auth";
+import { SupabaseRegisterForm } from "@/components/auth/SupabaseRegisterForm";
 
 export default function RegistroPage() {
-  return <RegisterForm />;
+  return <SupabaseRegisterForm />;
 }

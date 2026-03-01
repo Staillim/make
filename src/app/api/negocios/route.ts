@@ -25,10 +25,7 @@ async function createSupabaseServerClient() {
   );
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET() {
   try {
     const supabase = await createSupabaseServerClient();
     
@@ -40,10 +37,8 @@ export async function GET(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = await params;
-
-    // Fetch business ensuring user owns it
-    const { data: negocio, error } = await supabase
+    // Get user's businesses
+    const { data: negocios, error } = await supabase
       .from('negocios')
       .select(`
         id_negocio,
@@ -56,110 +51,29 @@ export async function GET(
         created_at,
         updated_at
       `)
-      .eq('id_negocio', id)
       .eq('id_usuario', user.id)
-      .single();
-
-    if (error || !negocio) {
-      return NextResponse.json(
-        { error: "Negocio no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ negocio });
-  } catch (error) {
-    console.error('Get business error:', error);
-    return NextResponse.json(
-      { error: "Error al obtener negocio" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const supabase = await createSupabaseServerClient();
-    
-    // Get authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      console.error('Auth error:', userError);
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-
-    const { id } = await params;
-    const body = await request.json();
-
-    // Filter allowed fields for update
-    const allowedFields = ['nombre', 'estado', 'url_tienda'];
-    const updateData: any = {};
-    
-    for (const [key, value] of Object.entries(body)) {
-      if (allowedFields.includes(key) && value !== undefined) {
-        updateData[key] = value;
-      }
-    }
-
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { error: "No hay campos válidos para actualizar" },
-        { status: 400 }
-      );
-    }
-
-    // Update business ensuring user owns it
-    const { data: negocio, error } = await supabase
-      .from('negocios')
-      .update(updateData)
-      .eq('id_negocio', id)
-      .eq('id_usuario', user.id)
-      .select(`
-        id_negocio,
-        id_usuario,
-        nombre,
-        estado,
-        fecha_creacion,
-        fecha_activacion,
-        url_tienda,
-        created_at,
-        updated_at
-      `)
-      .single();
+      .order('fecha_creacion', { ascending: false });
 
     if (error) {
-      console.error('Update business error:', error);
+      console.error('Error fetching businesses:', error);
       return NextResponse.json(
-        { error: "Error al actualizar negocio" },
+        { error: "Error al obtener negocios" },
         { status: 500 }
       );
     }
 
-    if (!negocio) {
-      return NextResponse.json(
-        { error: "Negocio no encontrado o sin permisos" },
-        { status: 404 }
-      );
-    }
+    return NextResponse.json({ negocios: negocios || [] });
 
-    return NextResponse.json({ negocio });
   } catch (error) {
-    console.error('Update business error:', error);
+    console.error('Unexpected error in GET /api/negocios:', error);
     return NextResponse.json(
-      { error: "Error al actualizar negocio" },
+      { error: "Error inesperado del servidor" },
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient();
     
@@ -171,17 +85,87 @@ export async function DELETE(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = await params;
+    const body = await request.json();
+    const { nombre } = body;
 
-    // Delete business ensuring user owns it (cascade will handle related data)
+    if (!nombre || nombre.trim() === '') {
+      return NextResponse.json(
+        { error: "El nombre del negocio es requerido" },
+        { status: 400 }
+      );
+    }
+
+    // Create new business
+    const { data: negocio, error } = await supabase
+      .from('negocios')
+      .insert({
+        id_usuario: user.id,
+        nombre: nombre.trim(),
+        estado: 'en_configuracion'
+      })
+      .select(`
+        id_negocio,
+        id_usuario,
+        nombre,
+        estado,
+        fecha_creacion,
+        fecha_activacion,
+        url_tienda,
+        created_at,
+        updated_at
+      `)
+      .single();
+
+    if (error) {
+      console.error('Error creating business:', error);
+      return NextResponse.json(
+        { error: "Error al crear negocio" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ negocio }, { status: 201 });
+
+  } catch (error) {
+    console.error('Unexpected error in POST /api/negocios:', error);
+    return NextResponse.json(
+      { error: "Error inesperado del servidor" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = createSupabaseServerClient();
+    
+    // Get authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('Auth error:', userError);
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id_negocio = searchParams.get('id');
+
+    if (!id_negocio) {
+      return NextResponse.json(
+        { error: "ID del negocio es requerido" },
+        { status: 400 }
+      );
+    }
+
+    // Verify ownership and delete business
     const { error } = await supabase
       .from('negocios')
       .delete()
-      .eq('id_negocio', id)
+      .eq('id_negocio', id_negocio)
       .eq('id_usuario', user.id);
 
     if (error) {
-      console.error('Delete business error:', error);
+      console.error('Error deleting business:', error);
       return NextResponse.json(
         { error: "Error al eliminar negocio" },
         { status: 500 }
@@ -189,13 +173,12 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true });
+
   } catch (error) {
-    console.error('Delete business error:', error);
+    console.error('Unexpected error in DELETE /api/negocios:', error);
     return NextResponse.json(
-      { error: "Error al eliminar negocio" },
+      { error: "Error inesperado del servidor" },
       { status: 500 }
     );
   }
 }
-
-

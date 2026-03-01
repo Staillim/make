@@ -1,16 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Enable experimental features for better Netlify compatibility
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
+  // Remove serverExternalPackages as it's no longer experimental in Next.js 16
 };
 
 export default nextConfig;
