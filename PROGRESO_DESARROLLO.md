@@ -2,7 +2,9 @@
 
 > **Inicio:** Marzo 1, 2026  
 > **Estrategia:** Opción A - Flujo Universal (12 días)  
-> **Objetivo:** Sistema multi-industria funcional end-to-end
+> **Objetivo:** Sistema multi-industria funcional end-to-end  
+> **Rama de desarrollo:** `jose-develop`  
+> **Último commit:** Sprint 1 - Biblioteca de prompts (18 archivos, 5,645+ líneas)
 
 ---
 
