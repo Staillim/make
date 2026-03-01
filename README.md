@@ -1,15 +1,66 @@
-# 🚀 Maket AI - Plataforma de Negocios Autónomos
+# 🚀 Maket AI - Plataforma SaaS Multi-Negocio con IA
 
-Una plataforma completa para crear negocios autónomos gestionados por agentes de IA. Los usuarios pueden crear tiendas online a través de conversaciones con un agente constructor, que luego son manejadas automáticamente por agentes especializados.
+**La plataforma que permite a cualquier emprendedor crear y gestionar negocios autónomos con agentes de IA especializados.**
+
+## 💡 La Visión
+
+Maket AI no está limitada a un solo tipo de negocio. Es una **plataforma modular y escalable** que se adapta automáticamente a diferentes industrias:
+
+- 🍔 **Restaurantes** → Agente vendedor estilo "María" (toma pedidos, sugiere combos)
+- 👗 **Tiendas de ropa** → Agente vendedor estilo "Sofía" (asesora moda, crea outfits)
+- 💻 **Tecnología** → Agente vendedor técnico "Alex" (especificaciones, compatibilidad)
+- 🏠 **Servicios** → Agentes especializados por tipo de servicio
+- ...y cualquier otro tipo de negocio
+
+Cada negocio obtiene **agentes de IA que aprenden y se especializan** según su contexto, productos y clientes.
 
 ## 🎯 Características Principales
 
-- **🤖 Agente Constructor**: Chat IA para crear negocios paso a paso (11 fases)
-- **🛒 Agente Vendedor**: Atiende clientes y gestiona ventas automáticamente  
-- **📊 Agente Administrador**: Reportes, inventario y métricas en tiempo real
-- **🎨 Plantillas Dinámicas**: Sistema de plantillas personalizables
+- **🤖 Agente Constructor**: Chat IA que crea negocios paso a paso (11 fases)
+- **🛒 Agente Vendedor**: Especializado por industria, atiende clientes 24/7
+- **📊 Agente Administrador**: Toma decisiones autónomas sobre inventario, precios y operaciones
+- **📢 Agente Marketing**: Analiza clientes, crea campañas y optimiza conversiones
+- **🎨 Plantillas Dinámicas**: Sistema de plantillas personalizables por tipo de negocio
 - **🏪 Tiendas Públicas**: URLs públicas generadas automáticamente
-- **💳 Gestión Comercial**: Pagos, envíos y políticas automatizadas
+- **👤 Perfiles Inteligentes**: Sistema que aprende las preferencias de cada cliente
+- **⚙️ Configuración Dinámica**: Todo configurable desde BD, sin hardcode
+
+## 🏛️ Arquitectura Multi-Tenant
+
+Maket AI está diseñada como una **plataforma SaaS multi-tenant** que soporta múltiples usuarios, cada uno con múltiples negocios:
+
+```
+Usuario 1
+  ├── Negocio 1.1 (Restaurante) → 3 agentes IA especializados
+  ├── Negocio 1.2 (Tienda ropa) → 3 agentes IA especializados
+  └── Negocio 1.3 (Tecnología) → 3 agentes IA especializados
+
+Usuario 2
+  ├── Negocio 2.1 (Servicios) → 3 agentes IA especializados
+  └── Negocio 2.2 (Restaurante) → 3 agentes IA especializados
+
+...y así sucesivamente
+```
+
+Cada negocio está completamente aislado con:
+- ✅ **RLS (Row Level Security)** en Supabase
+- ✅ **Agentes IA personalizados** según tipo de industria
+- ✅ **Configuración independiente** almacenada en BD
+- ✅ **Base de datos dedicada** por negocio (lógicamente)
+
+📖 **Más información:** Ver [ARQUITECTURA_MULTI_NEGOCIO.md](ARQUITECTURA_MULTI_NEGOCIO.md)
+
+## 📚 Documentación
+
+| Documento | Descripción |
+|-----------|-------------|
+| [README.md](README.md) | Este archivo - Guía de inicio rápido |
+| [PLAN.md](PLAN.md) | Plan completo del proyecto (18 secciones, 1100+ líneas) |
+| [ARQUITECTURA_MULTI_NEGOCIO.md](ARQUITECTURA_MULTI_NEGOCIO.md) | Arquitectura modular multi-tenant detallada |
+| [ANALISIS_5PALOS_Y_VISION.md](ANALISIS_5PALOS_Y_VISION.md) | Análisis del proyecto 5palos y aplicación a Maket AI |
+| [MIS_NEGOCIOS_COMPLETADO.md](MIS_NEGOCIOS_COMPLETADO.md) | Funcionalidades completadas del módulo "Mis Negocios" |
+| [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) | Configuración de Google OAuth |
+| [RLS_FIX_INSTRUCTIONS.md](RLS_FIX_INSTRUCTIONS.md) | Instrucciones para corregir RLS policies |
 
 ## 🛠️ Stack Tecnológico
 
@@ -115,23 +166,46 @@ negocios (1:N) productos (N:1) categorias
 negocios (1:N) agentes
 ```
 
-## 🤖 Agentes IA
+## 🤖 Agentes IA Especializados
 
-### **Agente Constructor**
-- **Conversacional**: Chat paso a paso para configurar negocio
+Cada negocio creado en Maket AI obtiene **3 agentes de IA especializados** que se adaptan automáticamente al tipo de industria:
+
+### **1. Agente Constructor** (Crea el negocio)
+- **Conversacional**: Chat paso a paso para configurar negocio completo
 - **11 Fases**: Desde tipo de negocio hasta activación final
-- **Adaptativo**: Preguntas dinámicas según el tipo de negocio
+- **Adaptativo**: Preguntas dinámicas según la industria detectada
 - **Persistente**: Guarda progreso en cada paso
+- **Inteligente**: Detecta tipo de negocio y selecciona plantillas de agentes apropiadas
 
-### **Agente Vendedor** (Futuro)  
-- Atención al cliente 24/7
-- Recomendaciones personalizadas
-- Cierre de ventas automático
+### **2. Agente Vendedor** (Atiende clientes)
+Plantillas especializadas por industria:
+- **🍔 Restaurante → "María"**: Toma pedidos en lenguaje natural, sugiere combos, aplica promociones
+- **👗 Tienda de ropa → "Sofía"**: Asesora tallas, crea outfits, sugiere accesorios
+- **💻 Tecnología → "Alex"**: Explica especificaciones, compatibilidad, soporte técnico
+- **🏠 Servicios → "Luna"**: Agenda citas, explica procesos, cotiza servicios
 
-### **Agente Administrador** (Futuro)
-- Reportes automáticos
-- Alertas de inventario  
-- Métricas de rendimiento
+**Capacidades comunes:**
+- Entiende lenguaje natural y contexto
+- Usa perfil del cliente (preferencias aprendidas)
+- Upselling y cross-selling inteligente
+- Personaliza según historial de compras
+- Aplica promociones automáticamente
+
+### **3. Agente Administrador** (Gestiona el negocio)
+Inspirado en "MAX" del proyecto 5palos:
+- **Decisiones autónomas**: Gestiona inventario, precios y operaciones
+- **Alertas inteligentes**: Stock crítico, pedidos atrasados, oportunidades
+- **Optimización de precios**: Ajusta según demanda, hora del día, stock
+- **Reposición automática**: Genera órdenes de compra cuando detecta necesidad
+- **Análisis predictivo**: Proyecta ventas, identifica tendencias
+- **Reportes automáticos**: Métricas diarias, semanales, mensuales
+
+### **4. Agente Marketing** (Futuro - Planificado)
+- Análisis de segmentación de clientes
+- Campañas automáticas personalizadas
+- Recomendaciones de productos
+- Optimización de conversión
+- A/B testing automático
 
 ## 🎨 Sistema de Plantillas
 

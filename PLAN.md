@@ -2,7 +2,42 @@
 
 > **Tecnologías:** Next.js (App Router) · React · TypeScript · Tailwind CSS  
 > **Fecha de inicio:** 1 de marzo de 2026  
-> **Estado:** En planificación
+> **Estado:** 🟢 En Desarrollo Activo
+
+## 📚 Documentación Complementaria
+
+- 📖 [README.md](README.md) - Guía de inicio y configuración
+- 🔍 [ANALISIS_5PALOS_Y_VISION.md](ANALISIS_5PALOS_Y_VISION.md) - Análisis del proyecto 5palos y aplicación a Maket AI
+- 🏗️ [ARQUITECTURA_MULTI_NEGOCIO.md](ARQUITECTURA_MULTI_NEGOCIO.md) - Arquitectura modular multi-tenant
+- ✅ [MIS_NEGOCIOS_COMPLETADO.md](MIS_NEGOCIOS_COMPLETADO.md) - Funcionalidades completadas
+
+## 📊 Estado Actual del Proyecto
+
+### ✅ Completado (Sprint 1-2)
+- [x] Configuración del proyecto (Next.js 16 + TypeScript + Tailwind)
+- [x] Base de datos Supabase con schema completo
+- [x] Sistema de autenticación (registro/login + JWT)
+- [x] Middleware de protección de rutas
+- [x] Componentes UI base (Button, Input, Card, Modal)
+- [x] Landing Page completa
+- [x] Dashboard con layout (sidebar + header)
+- [x] CRUD de negocios (crear, listar, eliminar, actualizar)
+- [x] Hook personalizado `useNegocios`
+- [x] Row Level Security (RLS) policies
+- [x] **Biblioteca de prompts para agentes vendedor (6+ industrias)**
+- [x] **Sistema de helpers para cargar templates por industria**
+
+### 🚧 En Progreso (Sprint 1 - Día 1)
+- [x] Agente Constructor: Biblioteca de prompts vendedor (COMPLETADO)
+- [ ] Agente Constructor: Sistema de detección automática de industria
+- [ ] Agente Constructor: Prompts de agente administrador (Max)
+- [ ] Agente Constructor: Chat conversacional backend
+
+### 📋 Pendiente
+- [ ] Agentes especializados (Vendedor, Administrador, Marketing)
+- [ ] Sistema de perfiles de clientes
+- [ ] Configuración dinámica por negocio
+- [ ] Tienda pública renderizada
 
 ---
 
