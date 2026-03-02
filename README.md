@@ -56,8 +56,11 @@ Cada negocio está completamente aislado con:
 |-----------|-------------|
 | [README.md](README.md) | Este archivo - Guía de inicio rápido |
 | [PLAN.md](PLAN.md) | Plan completo del proyecto (18 secciones, 1100+ líneas) |
+| [PROGRESO_DESARROLLO.md](PROGRESO_DESARROLLO.md) | Progreso completo del desarrollo (97% Sprint 1) |
 | [ARQUITECTURA_MULTI_NEGOCIO.md](ARQUITECTURA_MULTI_NEGOCIO.md) | Arquitectura modular multi-tenant detallada |
 | [ANALISIS_5PALOS_Y_VISION.md](ANALISIS_5PALOS_Y_VISION.md) | Análisis del proyecto 5palos y aplicación a Maket AI |
+| [CRM.md](CRM.md) | Sistema CRM completo con perfiles inteligentes (600+ líneas) |
+| [CRM_ANALYTICS.md](CRM_ANALYTICS.md) | Sistema analítico: churn, RFM, eventos, campañas (1,500+ líneas) |
 | [MIS_NEGOCIOS_COMPLETADO.md](MIS_NEGOCIOS_COMPLETADO.md) | Funcionalidades completadas del módulo "Mis Negocios" |
 | [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) | Configuración de Google OAuth |
 | [RLS_FIX_INSTRUCTIONS.md](RLS_FIX_INSTRUCTIONS.md) | Instrucciones para corregir RLS policies |
@@ -133,20 +136,81 @@ Visita [http://localhost:3000](http://localhost:3000)
 src/
 ├── app/
 │   ├── (auth)/                     # Registro y login
+│   │   ├── login/page.tsx
+│   │   └── registro/page.tsx
 │   ├── (dashboard)/                # Panel del usuario
+│   │   ├── layout.tsx
+│   │   └── dashboard/
+│   │       ├── page.tsx           # Dashboard principal
+│   │       └── negocio/
+│   │           ├── [id]/
+│   │           │   ├── constructor/page.tsx  # Chat constructor
+│   │           │   └── editar/page.tsx
+│   │           └── nuevo/page.tsx
 │   ├── tienda/[id_negocio]/       # Tiendas públicas
+│   │   └── page.tsx
 │   └── api/                       # Backend API routes
+│       ├── auth/
+│       │   ├── login/route.ts
+│       │   └── register/route.ts
+│       ├── constructor/
+│       │   └── mensaje/route.ts   # 🔥 Endpoint principal constructor
+│       └── negocios/
+│           ├── route.ts
+│           ├── [id]/route.ts
+│           └── crear/route.ts
 ├── components/
-│   ├── ui/                        # Componentes base
-│   ├── landing/                   # Landing page
-│   ├── auth/                      # Autenticación  
-│   ├── dashboard/                 # Panel de control
-│   └── constructor/               # Chat del agente
+│   ├── ui/                        # Componentes base (Button, Card, Input)
+│   ├── landing/                   # Landing page (Hero, Features, Pricing)
+│   ├── auth/                      # Autenticación (LoginForm, RegisterForm)
+│   ├── dashboard/                 # Panel de control (Header, Sidebar, BusinessList)
+│   └── constructor/               # Chat del agente (ChatWindow, ChatMessage)
 ├── lib/
 │   ├── supabase.ts               # Cliente de Supabase
-│   ├── database.types.ts         # Tipos TypeScript
+│   ├── database.types.ts         # Tipos TypeScript generados
+│   ├── templates/                # 🤖 BIBLIOTECA DE AGENTES IA
+│   │   ├── vendedor/             # Agentes vendedores (12 archivos)
+│   │   │   ├── restaurante.ts   # María (mesera experta)
+│   │   │   ├── tienda_ropa.ts   # Sofía (asesora de moda)
+│   │   │   ├── tecnologia.ts    # Alex (experto tech)
+│   │   │   ├── gimnasio.ts      # Coach Mike
+│   │   │   ├── educacion.ts     # Prof. Ana
+│   │   │   ├── servicios.ts     # Luna
+│   │   │   ├── agente-universal.ts  # Agente adaptable a cualquier industria
+│   │   │   ├── _base.ts         # Fallback genérico
+│   │   │   └── index.ts         # Helpers y exports
+│   │   ├── admin/                # Agentes administradores (9 archivos)
+│   │   │   ├── restaurante.ts   # Max - gestión gastronómica
+│   │   │   ├── tienda_ropa.ts   # Max - retail moda
+│   │   │   ├── tecnologia.ts    # Max - tech retail
+│   │   │   └── index.ts
+│   │   └── README.md            # Documentación de templates
+│   ├── constructor/              # 🧠 SISTEMA DE DETECCIÓN
+│   │   ├── detector.ts          # Detecta tipo de negocio automáticamente
+│   │   ├── detector.test.ts     # 13 test cases
+│   │   └── prompts/
+│   │       └── detector-system.ts
+│   ├── crm/                      # 🎯 SISTEMA CRM + ANALYTICS
+│   │   ├── perfil-cliente.ts    # Perfiles con 80+ campos
+│   │   ├── extractor.ts         # Extracción IA de preferencias
+│   │   ├── notificaciones.ts    # Multi-canal (email/WhatsApp/SMS)
+│   │   ├── perfil-helper.ts     # Funciones de alto nivel
+│   │   ├── scoring-churn.ts     # 🆕 Churn prediction + RFM scoring
+│   │   ├── tracking-eventos.ts  # 🆕 Event tracking (30+ tipos)
+│   │   ├── analytics-campanas.ts # 🆕 A/B testing + Lift analysis
+│   │   ├── ejemplo-integracion.ts
+│   │   └── index.ts             # 93 exports
 │   └── store/                    # Estados Zustand
-└── types/                        # Definiciones de tipos
+│       ├── auth-store.ts
+│       ├── constructor-store.ts
+│       └── negocio-store.ts
+├── types/                        # Definiciones de tipos
+│   ├── usuario.ts
+│   ├── negocio.ts
+│   └── constructor.ts
+└── sql/
+    ├── supabase-schema.sql      # Schema principal
+    └── schema-perfiles-clientes.sql  # Schema CRM con triggers
 ```
 
 ## 🗄️ Base de Datos
@@ -200,12 +264,30 @@ Inspirado en "MAX" del proyecto 5palos:
 - **Análisis predictivo**: Proyecta ventas, identifica tendencias
 - **Reportes automáticos**: Métricas diarias, semanales, mensuales
 
-### **4. Agente Marketing** (Futuro - Planificado)
-- Análisis de segmentación de clientes
-- Campañas automáticas personalizadas
-- Recomendaciones de productos
-- Optimización de conversión
-- A/B testing automático
+### **4. Sistema CRM + Analytics** (✅ Implementado)
+**Perfiles Inteligentes de Clientes:**
+- **Aprende automáticamente**: Gustos, preferencias, comportamiento
+- **Segmentación dinámica**: 5 segmentos base + 11 segmentos RFM
+- **Scoring predictivo**: Engagement (0-100), Probabilidad de compra (0-100), Churn risk (0-100)
+- **Notificaciones personalizadas**: Email, WhatsApp, SMS con 9 templates
+- **Extracción IA**: GPT-4 detecta preferencias de conversaciones
+
+**Analytics Avanzado:**
+- **Churn prediction**: Score 0-100 con 4 factores (Recency, Frequency, Monetary, Engagement)
+- **RFM Segmentation**: 11 segmentos estándar (Champions → Lost)
+- **Event tracking**: 30+ tipos de eventos granulares
+- **Campaign analytics**: Funnel completo + ROI + A/B testing
+- **Lift analysis**: Treatment vs control con Chi-cuadrado
+- **Dashboard ejecutivo**: Top performers, alertas automáticas
+
+📖 **Ver documentación completa:** [CRM.md](CRM.md) y [CRM_ANALYTICS.md](CRM_ANALYTICS.md)
+
+**Rutas de implementación:**
+- `src/lib/crm/perfil-cliente.ts` - Tipos y lógica de perfiles
+- `src/lib/crm/scoring-churn.ts` - Churn prediction y RFM
+- `src/lib/crm/tracking-eventos.ts` - Event tracking system
+- `src/lib/crm/analytics-campanas.ts` - Campaign analytics
+- `sql/schema-perfiles-clientes.sql` - Database schema con triggers
 
 ## 🎨 Sistema de Plantillas
 
@@ -213,6 +295,149 @@ Inspirado en "MAX" del proyecto 5palos:
 - **Personalizables**: Colores, tipografías, secciones
 - **Responsive**: Optimizadas para móviles
 - **Planes**: Free (3 plantillas) vs Premium (todas)
+
+## 🏗️ Blueprint Arquitectónico
+
+### Sistema de Agentes IA
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    BIBLIOTECA DE AGENTES                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  📚 VENDEDORES (src/lib/templates/vendedor/)                   │
+│  ├── Especializados (6): restaurante, ropa, tech, gym, edu... │
+│  ├── Universal: Adaptable a CUALQUIER industria               │
+│  └── Estrategia: Automática (usa especializado si existe)     │
+│                                                                 │
+│  👔 ADMINISTRADORES (src/lib/templates/admin/)                 │
+│  ├── Max - 6 especializaciones por industria                   │
+│  ├── KPIs + Alertas + Decisiones autónomas                    │
+│  └── Reportes automáticos (diario/semanal/mensual)            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│              SISTEMA DE DETECCIÓN AUTOMÁTICA                    │
+│              (src/lib/constructor/detector.ts)                  │
+│                                                                 │
+│  Input: "Quiero vender hamburguesas"                           │
+│  ↓                                                              │
+│  IA + Keywords → tipo_negocio: "restaurante"                   │
+│  ↓                                                              │
+│  Asigna: María (agente vendedor) + Max (admin)                │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                   SISTEMA DE CATÁLOGO                           │
+│                                                                 │
+│  Productos desde BD → inyectarCatalogo()                       │
+│  ↓                                                              │
+│  Placeholder {{PRODUCTOS_CATALOGO}} reemplazado en prompt      │
+│  ↓                                                              │
+│  Agente CONOCE exactamente qué vende                           │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                      SISTEMA CRM                                │
+│                (src/lib/crm/)                                   │
+│                                                                 │
+│  CAPTURA                                                        │
+│  ├── Conversación → extractor.ts (IA detecta preferencias)    │
+│  ├── Eventos → tracking-eventos.ts (30+ tipos)                │
+│  └── Compras → perfil-cliente.ts (actualiza métricas)         │
+│                                                                 │
+│  ANÁLISIS                                                       │
+│  ├── Scoring → scoring-churn.ts (churn + RFM + engagement)    │
+│  ├── Segmentación → 5 base + 11 RFM (automática)             │
+│  └── Predicción → probabilidad_compra (0-100)                 │
+│                                                                 │
+│  ACCIÓN                                                         │
+│  ├── Personalización → {{PERFIL_CLIENTE}} en prompt           │
+│  ├── Notificaciones → notificaciones.ts (multi-canal)         │
+│  └── Campañas → analytics-campanas.ts (A/B testing + lift)    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                   API ENDPOINT PRINCIPAL                        │
+│             /api/constructor/mensaje (route.ts)                 │
+│                                                                 │
+│  1. Identificar cliente (email/teléfono)                       │
+│  2. Cargar perfil → obtenerOCrearPerfil()                      │
+│  3. Generar resumen → obtenerResumenParaAgente()               │
+│  4. Inyectar en prompt → {{PERFIL_CLIENTE}}               │
+│  5. Llamar OpenAI con contexto completo                        │
+│  6. Registrar conversación → extraer info + actualizar perfil  │
+│  7. Disparar notificaciones si aplica                          │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                    BASE DE DATOS                                │
+│                   (Supabase PostgreSQL)                         │
+│                                                                 │
+│  Tablas principales:                                            │
+│  ├── negocios                                                   │
+│  ├── productos                                                  │
+│  ├── perfiles_clientes (CRM)                                   │
+│  ├── conversaciones_clientes                                    │
+│  ├── eventos_clientes (event tracking)                         │
+│  ├── notificaciones_programadas                                 │
+│  └── campanas_automatizadas                                     │
+│                                                                 │
+│  Triggers:                                                      │
+│  └── after_update_perfil → recalcular_segmento_cliente()      │
+│                                                                 │
+│  Views:                                                         │
+│  ├── clientes_vip                                              │
+│  ├── clientes_en_riesgo                                        │
+│  └── performance_campanas                                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Ciclo de Aprendizaje Continuo
+
+```
+   ┌──────────────┐
+   │   CLIENTE    │
+   │  interactúa  │
+   └──────┬───────┘
+          ↓
+   ┌──────────────┐
+   │   EVENTOS    │ ← registrarEvento()
+   │  capturados  │
+   └──────┬───────┘
+          ↓
+   ┌──────────────┐
+   │   PERFIL     │ ← obtenerMetricasUsuario()
+   │ actualizado  │
+   └──────┬───────┘
+          ↓
+   ┌──────────────┐
+   │   SCORING    │ ← calcularChurnScore(), calcularRFMScore()
+   │  recalculado │
+   └──────┬───────┘
+          ↓
+   ┌──────────────┐
+   │ SEGMENTACIÓN │ ← determinarSegmento(), trigger SQL
+   │  automática  │
+   └──────┬───────┘
+          ↓
+   ┌──────────────┐
+   │  CAMPAÑA     │ ← determinarNotificacionOptima()
+   │  activada    │
+   └──────┬───────┘
+          ↓
+   ┌──────────────┐
+   │  ANALYTICS   │ ← obtenerMetricasCampana(), calcularLift()
+   │  medición    │
+   └──────┬───────┘
+          ↓
+   ┌──────────────┐
+   │ OPTIMIZACIÓN │ ← compararCampanas(), A/B winner
+   │  continua    │
+   └──────────────┘
+```
 
 ## 🔐 Autenticación
 
