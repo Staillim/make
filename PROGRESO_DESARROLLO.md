@@ -4,7 +4,7 @@
 > **Estrategia:** Opción A - Flujo Universal (12 días)  
 > **Objetivo:** Sistema multi-industria funcional end-to-end  
 > **Rama de desarrollo:** `jose-develop`  
-> **Último commit:** Sprint 1 - Biblioteca admin completa (9 archivos, 4,227+ líneas)
+> **Último commit:** Sistema de catálogo de productos (13 archivos, 1,654+ líneas)
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Sprint | Período | Objetivo | Estado |
 |--------|---------|----------|--------|
-| Sprint 1 | Días 1-2 | Biblioteca de Prompts + Detector | 🟢 90% completo |
+| Sprint 1 | Días 1-2 | Biblioteca de Prompts + Detector | 🟢 92% completo |
 | Sprint 2 | Días 3-4 | Backend del Orquestador | ⚪ Pendiente |
 | Sprint 3 | Día 5 | Conectar Tienda a BD | ⚪ Pendiente |
 | Sprint 4 | Días 6-8 | Agente Vendedor Universal | ⚪ Pendiente |
@@ -38,6 +38,9 @@
 - [x] Crear función `detectarTipoNegocio()` con IA + fallback keywords
 - [x] Crear system prompt para detector (`detector-system.ts`)
 - [x] Testing suite con 13 casos de detección
+- [x] **Implementar sistema de catálogo de productos** ({{PRODUCTOS_CATALOGO}})
+- [x] Crear funciones `inyectarCatalogo()` y `obtenerPromptConCatalogo()`
+- [x] Agregar manejo de productos no disponibles a todos los agentes
 - [ ] Integrar OpenAI API en detector (TODO: actualmente usa keywords)
 - [ ] Ejecutar tests y validar accuracy
 - [ ] Actualizar PLAN.md con progreso
@@ -83,6 +86,21 @@
          ✅ detector-system.ts (System prompt para IA) [250+ líneas]
 ```
 
+**Día 2 - Sistema de Catálogo de Productos (COMPLETADO ✅):**
+```
+✅ src/lib/templates/vendedor/
+      ✅ CATALOGO.md           (Documentación completa sistema catálogo) [800+ líneas]
+      ✅ ejemplo-catalogo.ts   (5 ejemplos de uso práctico) [170+ líneas]
+      ✅ index.ts              (Actualizado con inyectarCatalogo y helpers)
+      ✅ _base.ts              (Actualizado con placeholder {{PRODUCTOS_CATALOGO}})
+      ✅ restaurante.ts        (Actualizado con manejo de productos no disponibles)
+      ✅ tecnologia.ts         (Actualizado con redirección a productos reales)
+      ✅ tienda_ropa.ts        (Actualizado con manejo de inventario)
+      ✅ gimnasio.ts           (Actualizado con servicios disponibles)
+      ✅ educacion.ts          (Actualizado con cursos ofrecidos)
+      ✅ servicios.ts          (Actualizado con servicios profesionales)
+```
+
 ### 💡 Decisiones Técnicas
 
 1. **Estructura de prompts:**
@@ -120,23 +138,25 @@
 ## 📊 Métricas Actuales
 
 ### Archivos Totales Creados (Sprint 1)
-- **28 archivos** creados
-  - 9 archivos templates vendedor
+- **40 archivos** creados
+  - 9 archivos templates vendedor (actualizado con catálogo)
   - 9 archivos templates admin
   - 3 archivos detección de industria
-  - 3 archivos documentación
-  - 4 archivos auxiliares
+  - 4 archivos documentación (incluyendo CATALOGO.md)
+  - 1 archivo de ejemplos (ejemplo-catalogo.ts)
+  - 14 archivos auxiliares y helpers
 
 ### Líneas de Código
-- **~6,500 líneas** de prompts especializados
-  - Vendedor: ~2,930 líneas (6 industrias + base)
+- **~8,200 líneas** de prompts especializados
+  - Vendedor: ~3,500 líneas (6 industrias + base + catálogo)
   - Admin: ~3,760 líneas (6 industrias + base)
+  - Sistema catálogo: ~940 líneas (helpers + documentación + ejemplos)
 - **~850 líneas** de sistema de detección (detector + tests + system prompt)
-- **~1,200 líneas** de documentación (3 READMEs completos)
-- **~270 líneas** de helpers y tipos
+- **~2,000 líneas** de documentación (4 archivos: 3 READMEs + CATALOGO.md)
+- **~350 líneas** de helpers, tipos y funciones auxiliares
 
 ### Progreso Sprint 1
-- **90%** completado ✅
+- **92%** completado ✅
 - **Pendiente**: Integración OpenAI API, ejecutar tests, actualizar PLAN.md
 
 ### Métricas de Agentes Vendedores
@@ -237,16 +257,65 @@
 - Benchmarks de industria ayudan a contextualizar métricas
 - Recomendaciones deben incluir proyección de impacto ($$ o %)
 
+### Día 2 - Sistema de Catálogo de Productos ✅
+**Tiempo:** 2 horas  
+**Completado:** 13 archivos actualizados/creados (~1,654 líneas)
+
+**Problema identificado:**
+> "Los agentes tienen que saber que están vendiendo. Si al de tecnología le dicen que le de una hamburguesa, tiene que saber cómo responder y redirigir la conversación a lo que realmente vende."
+
+**Solución implementada:**
+- ✅ Placeholder `{{PRODUCTOS_CATALOGO}}` en todos los prompts vendedor
+- ✅ Función `inyectarCatalogo(prompt, productos)` con formato automático
+- ✅ Helper `obtenerPromptConCatalogo(industria, productos)` all-in-one
+- ✅ Interfaz `Producto` con campos: id, nombre, descripcion, precio, categoria, disponible, variantes
+- ✅ Formato markdown automático agrupado por categorías
+- ✅ Indicadores visuales: ✅ disponible, ❌ no disponible
+- ✅ Instrucciones claras para manejar productos no disponibles
+- ✅ Ejemplos de redirección cuando piden productos de otra industria
+- ✅ Documentación completa: CATALOGO.md (800+ líneas)
+- ✅ Archivo de ejemplos prácticos: ejemplo-catalogo.ts (5 casos de uso)
+- ✅ Actualización de 8 prompts vendedor con manejo inteligente
+
+**Capacidades conseguidas:**
+- ✅ Agentes conocen exactamente qué productos/servicios venden
+- ✅ No inventan productos que no existen
+- ✅ Redirigen amablemente cuando les piden algo no disponible
+- ✅ Respetan el campo `disponible` (no ofrecen productos agotados)
+- ✅ Manejan variantes (tallas, colores, modelos)
+- ✅ Ofrecen alternativas inteligentes basadas en catálogo real
+
+**Ejemplos reales:**
+```
+Cliente: "Quiero una hamburguesa" (en tienda de tecnología)
+Alex (Tech): "Jaja, me encantaría ayudarte pero vendemos tecnología 😅 
+¿Buscas algún gadget o dispositivo? Tenemos desde smartphones hasta laptops 💻"
+
+Cliente: "¿Tienen Pizza Margherita?"
+María (Restaurante): "Lamentablemente la Pizza Margherita no está disponible hoy 😔 
+Pero tengo hamburguesas increíbles que te van a encantar. ¿Te animas?"
+```
+
+💡 **Insights:**
+- El catálogo se inyecta dinámicamente desde la BD por cada request
+- Productos agotados se marcan como no disponibles pero no se ocultan (para ofrecer alternativas)
+- Categorización automática facilita que el agente organice recomendaciones
+- Precios en el prompt permiten que el agente cotice con confianza
+- Variantes (tallas, colores) se incluyen en metadata para consulta del agente
+- Redirección amable es crítica: no decir "no tengo", sino "tengo esto mejor"
+
 ### 🎯 Logros Sprint 1
 
 **Cumplidos:**
 - ✅ 12 agentes especializados (6 vendedores + 6 admin)
 - ✅ 2 agentes genéricos fallback
 - ✅ Sistema de detección automática
-- ✅ 28 archivos, ~8,800 líneas de código
-- ✅ 90% de Sprint 1 completado en 1.5 días
+- ✅ **Sistema de catálogo de productos dinámico**
+- ✅ **Funciones helper para inyección de inventario**
+- ✅ 40 archivos, ~11,400 líneas de código
+- ✅ 92% de Sprint 1 completado en 2 días
 
-**Pendientes (10%):**
+**Pendientes (8%):**
 - ⬜ Integrar OpenAI API real (actualmente keywords)
 - ⬜ Ejecutar tests y validar accuracy
 - ⬜ Actualizar PLAN.md
@@ -260,7 +329,8 @@
 | Mar 1 AM | Biblioteca vendedores | 3h | ✅ 9 archivos, ~3,000 líneas |
 | Mar 1 PM | Sistema detección | 2h | ✅ 3 archivos, ~850 líneas |
 | Mar 1 Eve | Biblioteca admin | 4h | ✅ 9 archivos, ~4,410 líneas |
-| Mar 2 | Integración + tests | ~2h | 🔵 Pendiente |
+| Mar 2 | Sistema catálogo productos | 2h | ✅ 13 archivos, ~1,654 líneas |
+| Mar 2 | Integración + tests | ~1h | 🔵 Pendiente |
 
 ---
 
