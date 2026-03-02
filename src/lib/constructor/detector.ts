@@ -1,9 +1,11 @@
 /**
  * Detector de Tipo de Negocio
  * Usa IA para clasificar automáticamente la industria según la descripción del usuario
+ * Soporta: OpenAI y Google Gemini
  */
 
 import type { IndustriaTipo } from "../templates/vendedor";
+import { crearClienteDesdeEnv } from "../ia/cliente-ia";
 
 /**
  * Resultado de la detección de industria
@@ -51,17 +53,22 @@ export async function detectarTipoNegocio(
   });
 
   try {
-    // TODO: Llamada a OpenAI
-    // const respuesta = await openai.chat.completions.create({
-    //   model: 'gpt-4',
-    //   messages: [
-    //     { role: 'system', content: SYSTEM_PROMPT_DETECTOR },
-    //     { role: 'user', content: prompt }
-    //   ],
-    //   temperature: 0.3,
-    // });
-
-    // Por ahora usamos detección por palabras clave
+    // Intentar con IA (OpenAI o Gemini)
+    const cliente = crearClienteDesdeEnv();
+    cliente.setTemperatura(0.3); // Baja temperatura para consistencia
+    
+    const resultadoIA = await cliente.extraerJSON<DeteccionIndustria>(
+      SYSTEM_PROMPT_DETECTOR,
+      prompt
+    );
+    
+    // Validar y retornar
+    if (resultadoIA.confianza >= umbralConfianza) {
+      return resultadoIA;
+    }
+    
+    // Si confianza baja, usar palabras clave
+    console.warn(`Confianza IA baja (${resultadoIA.confianza}%), usando fallback`);
     const resultado = detectarPorPalabrasClave(descripcion);
 
     if (resultado.confianza < umbralConfianza) {
@@ -80,11 +87,53 @@ export async function detectarTipoNegocio(
 
     return resultado;
   } catch (error) {
-    console.error("Error al detectar tipo de negocio:", error);
+    console.error("Error al detectar tipo de negocio con IA:", error);
     // Fallback a detección por palabras clave
+    console.log("Usando detección por palabras clave (fallback)");
     return detectarPorPalabrasClave(descripcion);
   }
 }
+
+/**
+ * System prompt para el detector de industria
+ */
+const SYSTEM_PROMPT_DETECTOR = `Eres un experto clasificador de negocios.
+
+Tu tarea es analizar descripciones de negocios y clasificarlas en una de estas categorías:
+
+1. **restaurante**: Negocios de comida, bebidas, cafeterías, bares, food trucks
+2. **tienda_ropa**: Tiendas de ropa, moda, accesorios, calzado, joyería
+3. **tecnologia**: Venta de dispositivos electrónicos, gadgets, computadoras, smartphones
+4. **gimnasio**: Gimnasios, estudios de fitness, entrenamiento personal, yoga, pilates
+5. **educacion**: Cursos online, tutorías, academias, capacitación, e-learning
+6. **servicios**: Servicios profesionales, consultoría, asesorías, freelancing
+7. **otro**: Cualquier negocio que no encaje claramente en las anteriores
+
+DEBES responder SOLO con JSON válido en este formato exacto:
+{
+  "tipo": "categoria_detectada",
+  "confianza": 85,
+  "razonamiento": "Explicación breve de por qué elegiste esta categoría",
+  "categorias_sugeridas": ["Categoría 1", "Categoría 2", "Categoría 3"],
+  "tipo_producto": "fisico",
+  "alcance_sugerido": "local"
+}
+
+Reglas:
+- confianza: número del 0 al 100 (qué tan seguro estás)
+- tipo_producto: "fisico" | "digital" | "mixto"
+- alcance_sugerido: "local" | "nacional" | "internacional"
+- categorias_sugeridas: 3-5 categorías de productos que podría vender este negocio
+
+Ejemplos:
+
+Input: "Quiero vender hamburguesas y papas fritas"
+Output: {"tipo": "restaurante", "confianza": 95, "razonamiento": "Venta de comida rápida", "categorias_sugeridas": ["Hamburguesas", "Papas fritas", "Bebidas", "Combos"], "tipo_producto": "fisico", "alcance_sugerido": "local"}
+
+Input: "Ropa urbana para jóvenes"
+Output: {"tipo": "tienda_ropa", "confianza": 90, "razonamiento": "Venta de ropa con enfoque en estilo urbano", "categorias_sugeridas": ["Camisetas", "Jeans", "Zapatos", "Gorras"], "tipo_producto": "fisico", "alcance_sugerido": "nacional"}
+
+Responde SOLO con el JSON, sin texto adicional.`;
 
 /**
  * Construye el prompt para la IA

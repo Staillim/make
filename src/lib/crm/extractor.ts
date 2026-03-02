@@ -1,7 +1,7 @@
 /**
  * Servicio de Extracción de Información con IA
  * 
- * Analiza conversaciones usando OpenAI para detectar:
+ * Analiza conversaciones usando IA (OpenAI o Gemini) para detectar:
  * - Preferencias de productos
  * - Contexto de compra
  * - Sentimiento del cliente
@@ -10,6 +10,7 @@
  */
 
 import { InformacionExtraida, PROMPT_EXTRACCION_INFO } from "./perfil-cliente";
+import { ClienteIA, type ProveedorIA } from "../ia/cliente-ia";
 
 /**
  * Mensaje de una conversación
@@ -24,8 +25,9 @@ export interface MensajeConversacion {
  * Configuración del extractor
  */
 export interface ConfiguracionExtractor {
-  openai_api_key: string;
-  modelo?: string; // "gpt-4" (default) | "gpt-3.5-turbo"
+  api_key: string;
+  provider?: ProveedorIA; // "openai" | "gemini"
+  modelo?: string;
   temperatura?: number; // 0.0 - 1.0 (default: 0.3)
   catalogo_productos?: string[]; // Lista de productos conocidos
 }
@@ -38,8 +40,9 @@ export async function extraerInformacionConversacion(
   config: ConfiguracionExtractor
 ): Promise<InformacionExtraida> {
   const {
-    openai_api_key,
-    modelo = "gpt-4",
+    api_key,
+    provider = "gemini",
+    modelo,
     temperatura = 0.3,
     catalogo_productos = []
   } = config;
@@ -58,44 +61,19 @@ export async function extraerInformacionConversacion(
   const prompt_completo = `${PROMPT_EXTRACCION_INFO}${contexto_catalogo}\n\nCONVERSACIÓN A ANALIZAR:\n${conversation_text}`;
   
   try {
-    // Llamar a OpenAI API
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${openai_api_key}`
-      },
-      body: JSON.stringify({
-        model: modelo,
-        messages: [
-          {
-            role: "system",
-            content: prompt_completo
-          },
-          {
-            role: "user",
-            content: "Analiza la conversación anterior y extrae la información en formato JSON."
-          }
-        ],
-        temperature: temperatura,
-        response_format: { type: "json_object" }
-      })
+    // Usar cliente unificado de IA
+    const cliente = new ClienteIA({
+      provider,
+      api_key,
+      modelo,
+      temperatura
     });
     
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} - ${error}`);
-    }
-    
-    const data = await response.json();
-    const resultado_texto = data.choices[0]?.message?.content;
-    
-    if (!resultado_texto) {
-      throw new Error("OpenAI no devolvió respuesta");
-    }
-    
-    // Parsear JSON
-    const informacion: InformacionExtraida = JSON.parse(resultado_texto);
+    // Extraer información en formato JSON
+    const informacion = await cliente.extraerJSON<InformacionExtraida>(
+      prompt_completo,
+      "Analiza la conversación anterior y extrae la información en formato JSON."
+    );
     
     // Normalizar y validar
     return normalizarInformacionExtraida(informacion);
@@ -217,7 +195,7 @@ export async function extraerSentimiento(
   mensajes: MensajeConversacion[],
   config: ConfiguracionExtractor
 ): Promise<"positivo" | "neutral" | "negativo"> {
-  const { openai_api_key, modelo = "gpt-3.5-turbo" } = config;
+  const { api_key, provider = "gemini", modelo } = config;
   
   const conversation_text = mensajes
     .filter(m => m.role === "user")
@@ -225,31 +203,26 @@ export async function extraerSentimiento(
     .join("\n");
   
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${openai_api_key}`
-      },
-      body: JSON.stringify({
-        model: modelo,
-        messages: [
-          {
-            role: "system",
-            content: "Analiza el sentimiento del cliente en esta conversación. Responde solo con: 'positivo', 'neutral' o 'negativo'."
-          },
-          {
-            role: "user",
-            content: conversation_text
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 10
-      })
+    const cliente = new ClienteIA({
+      provider,
+      api_key,
+      modelo,
+      temperatura: 0.1,
+      max_tokens: 10
     });
     
-    const data = await response.json();
-    const sentimiento = data.choices[0]?.message?.content?.toLowerCase().trim();
+    const respuesta = await cliente.generarRespuesta([
+      {
+        role: "system",
+        content: "Analiza el sentimiento del cliente en esta conversación. Responde solo con: 'positivo', 'neutral' o 'negativo'."
+      },
+      {
+        role: "user",
+        content: conversation_text
+      }
+    ]);
+    
+    const sentimiento = respuesta.contenido.toLowerCase().trim();
     
     if (["positivo", "neutral", "negativo"].includes(sentimiento)) {
       return sentimiento as any;
