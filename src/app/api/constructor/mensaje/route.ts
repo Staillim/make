@@ -7,6 +7,12 @@ import {
   registrarConversacion 
 } from "@/lib/crm";
 import { obtenerTemplateVendedor, inyectarCatalogo } from "@/lib/templates/vendedor";
+import {
+  obtenerNotasAgente,
+  formatearNotasParaPrompt,
+  generarBloquePrompNotas,
+  procesarNotasDeRespuesta,
+} from "@/lib/agentes/notas-agente";
 
 export async function POST(request: Request) {
   try {
@@ -100,6 +106,15 @@ export async function POST(request: Request) {
       console.error("Error obteniendo template:", error);
       prompt_sistema = `Eres un asistente de ventas para ${negocio.nombre}. Ayuda al cliente de forma amigable y profesional.`;
     }
+
+    // 3b. Inyectar notas del agente vendedor en el prompt
+    try {
+      const notas = await obtenerNotasAgente(supabase, id_negocio, "vendedor", { limite: 30 });
+      const bloque = generarBloquePrompNotas(formatearNotasParaPrompt(notas));
+      if (bloque) prompt_sistema += "\n\n" + bloque;
+    } catch (error) {
+      console.error("Error cargando notas del agente vendedor:", error);
+    }
     
     // 4. Preparar mensajes para IA
     const mensajes_ia = [
@@ -114,6 +129,20 @@ export async function POST(request: Request) {
     // 5. Generar respuesta con IA
     const cliente_ia = crearClienteDesdeEnv();
     const respuesta_ia = await cliente_ia.generarRespuesta(mensajes_ia);
+
+    // 5b. Procesar notas del agente (extraer marcadores [[NOTA_AGENTE:{...}]] y guardar)
+    let contenido_final = respuesta_ia.contenido;
+    try {
+      contenido_final = await procesarNotasDeRespuesta(
+        supabase,
+        respuesta_ia.contenido,
+        id_negocio,
+        "vendedor",
+        body.id_sesion
+      );
+    } catch (error) {
+      console.error("Error procesando notas del vendedor:", error);
+    }
     
     // 6. Registrar conversación en el CRM (si hay perfil)
     if (perfil_cliente) {
@@ -124,7 +153,7 @@ export async function POST(request: Request) {
           id_negocio,
           [
             { role: "user", content: mensaje },
-            { role: "assistant", content: respuesta_ia.contenido }
+            { role: "assistant", content: contenido_final }
           ],
           {
             api_key: process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || "",
@@ -142,7 +171,7 @@ export async function POST(request: Request) {
     const respuesta = {
       id: crypto.randomUUID(),
       rol: "bot" as const,
-      contenido: respuesta_ia.contenido,
+      contenido: contenido_final,
       timestamp: new Date().toISOString(),
       fase,
       modelo_usado: respuesta_ia.modelo_usado,

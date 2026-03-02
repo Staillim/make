@@ -73,7 +73,10 @@ export default async function TiendaPage({
           <div className="flex items-center justify-between h-16">
             {/* Menu + Logo */}
             <div className="flex items-center gap-4">
-              <button className="lg:hidden text-zinc-600 dark:text-zinc-400">
+              <button
+                aria-label="Abrir menú"
+                className="lg:hidden text-zinc-600 dark:text-zinc-400"
+              >
                 <Menu size={24} />
               </button>
               <h1 className="text-xl font-bold text-zinc-900 dark:text-white">
@@ -96,13 +99,13 @@ export default async function TiendaPage({
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              <button className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900">
+              <button aria-label="Buscar" className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900">
                 <Search size={20} />
               </button>
-              <button className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900">
+              <button aria-label="Lista de deseos" className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900">
                 <Heart size={20} />
               </button>
-              <button className="relative p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900">
+              <button aria-label="Carrito de compras" className="relative p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900">
                 <ShoppingCart size={20} />
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   0
@@ -114,7 +117,7 @@ export default async function TiendaPage({
       </header>
 
       {/* Hero Banner */}
-      <section className="relative bg-gradient-to-r from-zinc-900 to-zinc-800 py-20 md:py-32">
+      <section className="relative bg-linear-to-r from-zinc-900 to-zinc-800 py-20 md:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-4">
             {tienda.slogan}
@@ -182,7 +185,7 @@ export default async function TiendaPage({
                 className="group rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950 hover:shadow-xl transition-all"
               >
                 {/* Image placeholder */}
-                <div className="aspect-square bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 relative overflow-hidden">
+                <div className="aspect-square bg-linear-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 relative overflow-hidden">
                   <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-30">
                     {producto.categoria === "Camisetas"
                       ? "👕"
@@ -192,7 +195,10 @@ export default async function TiendaPage({
                           ? "👟"
                           : "👜"}
                   </div>
-                  <button className="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-zinc-800/80 text-zinc-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                  <button
+                    aria-label="Agregar a favoritos"
+                    className="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-zinc-800/80 text-zinc-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  >
                     <Heart size={18} />
                   </button>
                 </div>
@@ -222,7 +228,10 @@ export default async function TiendaPage({
 
       {/* AI Chat Widget placeholder */}
       <div className="fixed bottom-6 right-6 z-50">
-        <button className="w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg shadow-indigo-500/25 flex items-center justify-center hover:bg-indigo-700 transition-colors">
+        <button
+          aria-label="Abrir chat con asistente"
+          className="w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg shadow-indigo-500/25 flex items-center justify-center hover:bg-indigo-700 transition-colors"
+        >
           <svg
             viewBox="0 0 24 24"
             className="w-6 h-6"

@@ -16,6 +16,12 @@ import { NextResponse } from "next/server";
 import { crearClienteDesdeEnv } from "@/lib/ia/cliente-ia";
 import adminUniversalTemplate from "@/lib/templates/admin-universal";
 import { createClient } from "@/lib/supabase";
+import {
+  obtenerNotasAgente,
+  formatearNotasParaPrompt,
+  generarBloquePrompNotas,
+  procesarNotasDeRespuesta,
+} from "@/lib/agentes/notas-agente";
 
 export async function POST(request: Request) {
   try {
@@ -76,6 +82,15 @@ ${Object.keys(contexto).length > 0 ? `**Contexto adicional:**\n${JSON.stringify(
     // 3. Preparar prompt del Administrador
     let prompt_sistema = adminUniversalTemplate.prompt + "\n\n" + contexto_negocio;
 
+    // 3b. Inyectar notas del agente administrador
+    try {
+      const notas = await obtenerNotasAgente(supabase, id_negocio, "administrador", { limite: 30 });
+      const bloque = generarBloquePrompNotas(formatearNotasParaPrompt(notas));
+      if (bloque) prompt_sistema += "\n\n" + bloque;
+    } catch (error) {
+      console.error("Error cargando notas del administrador:", error);
+    }
+
     // 4. Preparar mensajes para IA
     const mensajes_ia = [
       { role: "system", content: prompt_sistema },
@@ -90,12 +105,26 @@ ${Object.keys(contexto).length > 0 ? `**Contexto adicional:**\n${JSON.stringify(
     const cliente_ia = crearClienteDesdeEnv();
     const respuesta = await cliente_ia.generarRespuesta(mensajes_ia);
 
+    // 5b. Procesar notas del agente (extraer [[NOTA_AGENTE:{...}]] y guardar en BD)
+    let contenido_final = respuesta.contenido;
+    try {
+      contenido_final = await procesarNotasDeRespuesta(
+        supabase,
+        respuesta.contenido,
+        id_negocio,
+        "administrador",
+        body.id_sesion
+      );
+    } catch (error) {
+      console.error("Error procesando notas del administrador:", error);
+    }
+
     // 6. Detectar si la respuesta incluye una acción ejecutable
     let accion_ejecutada = null;
     try {
       accion_ejecutada = await detectarYEjecutarAccion(
         mensaje,
-        respuesta.contenido,
+        contenido_final,
         negocio,
         supabase
       );
@@ -104,7 +133,7 @@ ${Object.keys(contexto).length > 0 ? `**Contexto adicional:**\n${JSON.stringify(
     }
 
     return NextResponse.json({
-      respuesta: respuesta.contenido,
+      respuesta: contenido_final,
       modelo_usado: respuesta.modelo_usado,
       provider: respuesta.provider,
       accion_ejecutada,
