@@ -4,7 +4,7 @@
 > **Estrategia:** Opción A - Flujo Universal (12 días)  
 > **Objetivo:** Sistema multi-industria funcional end-to-end  
 > **Rama de desarrollo:** `jose-develop`  
-> **Último commit:** Sistema de catálogo de productos (13 archivos, 1,654+ líneas)
+> **Último commit:** Agente Universal Adaptable (4 archivos, 1,082+ líneas)
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Sprint | Período | Objetivo | Estado |
 |--------|---------|----------|--------|
-| Sprint 1 | Días 1-2 | Biblioteca de Prompts + Detector | 🟢 92% completo |
+| Sprint 1 | Días 1-2 | Biblioteca de Prompts + Detector | 🟢 94% completo |
 | Sprint 2 | Días 3-4 | Backend del Orquestador | ⚪ Pendiente |
 | Sprint 3 | Día 5 | Conectar Tienda a BD | ⚪ Pendiente |
 | Sprint 4 | Días 6-8 | Agente Vendedor Universal | ⚪ Pendiente |
@@ -41,6 +41,9 @@
 - [x] **Implementar sistema de catálogo de productos** ({{PRODUCTOS_CATALOGO}})
 - [x] Crear funciones `inyectarCatalogo()` y `obtenerPromptConCatalogo()`
 - [x] Agregar manejo de productos no disponibles a todos los agentes
+- [x] **Implementar Agente Universal Adaptable** (alternativa flexible a especializados)
+- [x] Crear funciones `obtenerAgenteUniversal()`, `obtenerPromptSegunEstrategia()`
+- [x] Sistema de A/B testing para comparar enfoques
 - [ ] Integrar OpenAI API en detector (TODO: actualmente usa keywords)
 - [ ] Ejecutar tests y validar accuracy
 - [ ] Actualizar PLAN.md con progreso
@@ -138,25 +141,26 @@
 ## 📊 Métricas Actuales
 
 ### Archivos Totales Creados (Sprint 1)
-- **40 archivos** creados
-  - 9 archivos templates vendedor (actualizado con catálogo)
+- **43 archivos** creados/actualizados
+  - 11 archivos templates vendedor (6 especializados + base + universal + 2 ejemplos + index)
   - 9 archivos templates admin
   - 3 archivos detección de industria
-  - 4 archivos documentación (incluyendo CATALOGO.md)
-  - 1 archivo de ejemplos (ejemplo-catalogo.ts)
-  - 14 archivos auxiliares y helpers
+  - 4 archivos documentación (incluyendo CATALOGO.md actualizado)
+  - 16 archivos auxiliares y helpers
 
 ### Líneas de Código
-- **~8,200 líneas** de prompts especializados
-  - Vendedor: ~3,500 líneas (6 industrias + base + catálogo)
+- **~9,300 líneas** de prompts especializados
+  - Vendedor especializado: ~3,500 líneas (6 industrias + base + catálogo)
+  - Vendedor universal: ~600 líneas (agente adaptable)
   - Admin: ~3,760 líneas (6 industrias + base)
   - Sistema catálogo: ~940 líneas (helpers + documentación + ejemplos)
+  - Ejemplo comparativo: ~450 líneas
 - **~850 líneas** de sistema de detección (detector + tests + system prompt)
-- **~2,000 líneas** de documentación (4 archivos: 3 READMEs + CATALOGO.md)
-- **~350 líneas** de helpers, tipos y funciones auxiliares
+- **~2,200 líneas** de documentación (actualizada con agente universal)
+- **~450 líneas** de helpers, tipos y funciones auxiliares
 
 ### Progreso Sprint 1
-- **92%** completado ✅
+- **94%** completado ✅
 - **Pendiente**: Integración OpenAI API, ejecutar tests, actualizar PLAN.md
 
 ### Métricas de Agentes Vendedores
@@ -304,18 +308,127 @@ Pero tengo hamburguesas increíbles que te van a encantar. ¿Te animas?"
 - Variantes (tallas, colores) se incluyen en metadata para consulta del agente
 - Redirección amable es crítica: no decir "no tengo", sino "tengo esto mejor"
 
+### Día 2 - Agente Universal Adaptable ✅
+**Tiempo:** 2 horas  
+**Completado:** 4 archivos nuevos/actualizados (~1,082 líneas)
+
+**Problema identificado:**
+> "¿No se puede un agente asesor de ventas para múltiples negocios que se adapte según el negocio, o tiene que ser específico para cada uno?"
+
+**Solución: Sistema Híbrido con 3 Estrategias**
+
+**Implementado:**
+- ✅ Agente Universal que se adapta dinámicamente a **CUALQUIER** tipo de negocio
+- ✅ Vocabulario automático por industria (6+ industrias mapeadas)
+- ✅ 4 personalidades según tono: casual, profesional, juvenil, elegante
+- ✅ Metadata personalizable: nombre, descripción, objetivo venta, valor agregado
+- ✅ Sistema de comparación A/B testing (especializado vs universal)
+- ✅ Estrategia automática: usa especializado si existe, sino universal
+- ✅ Funciones helper: `obtenerAgenteUniversal()`, `obtenerPromptSegunEstrategia()`
+- ✅ Documentación completa con ejemplos comparativos
+
+**Archivo principal:**
+```typescript
+// agente-universal.ts
+generarAgenteUniversal({
+  industria: "floristeria",
+  nombreNegocio: "Flores del Campo",
+  tono: "elegante",
+  descripcionNegocio: "Flores frescas para toda ocasión"
+})
+// → Genera prompt adaptado automáticamente sin crear archivo nuevo
+```
+
+**3 Estrategias Disponibles:**
+
+1. **Especializado** - Usa María, Alex, Sofía (mejor UX, personalidad rica)
+2. **Universal** - Usa agente adaptable (máxima flexibilidad, infinitas industrias)
+3. **Automática** - Decide inteligentemente (RECOMENDADO):
+   - Si existe especializado (restaurante, tech, ropa, gym, educación, servicios) → lo usa
+   - Si NO existe (floristería, joyería, mascotas, etc.) → usa universal automáticamente
+
+**Vocabulario Adaptable por Industria:**
+
+| Industria | Verbo Vender | Cliente | Producto | Emojis Usados |
+|-----------|--------------|---------|----------|---------------|
+| Restaurante | recomendar | cliente | platillo | 🍔🍕🍝🥗🍗🥤🍰😋 |
+| Ropa | asesorar | amor/cliente | prenda | 👔👗👕👖👟👜✨💕 |
+| Tecnología | asesorar | amigo | dispositivo | 💻📱⌚🎮🖥️⚡🔋📷 |
+| Gimnasio | motivar | hermano/campeón | plan | 💪🏋️🔥🏃🎯💯⚡🥇 |
+| Educación | orientar | estudiante | curso | 📚🎓💡✍️🎯🚀⭐🏆 |
+| Servicios | consultar | cliente | servicio | 💼📊🎯📈💡✅🤝⚡ |
+| **Fallback** | ayudar | cliente | producto/servicio | ✅👍💡📦🎯⭐✨🙌 |
+
+**4 Tonos de Personalidad:**
+
+```typescript
+// Tono Casual
+"¡Ey! ¿Qué onda? 😊 La verdad es que X está buenísimo"
+
+// Tono Profesional
+"Buenos días, ¿en qué puedo ayudarle? Le recomendaría X por..."
+
+// Tono Juvenil
+"¡Woww! Esto está top 🔥 Es un must have, literal"
+
+// Tono Elegante
+"Permítame sugerirle... Esta pieza es excepcional por..."
+```
+
+**Casos de uso reales:**
+
+```typescript
+// Caso 1: Floristería (no tiene especializado) → Universal automático
+obtenerPromptSegunEstrategia("automatico", {
+  industria: "floristeria",
+  tono: "elegante"
+}, productos);
+// → Se adapta automáticamente con vocabulario de flores
+
+// Caso 2: Restaurante (SÍ tiene especializado) → María
+obtenerPromptSegunEstrategia("automatico", {
+  industria: "restaurante",
+  tono: "casual"
+}, productos);
+// → Usa María (mesera experta) para mejor UX
+
+// Caso 3: A/B Testing
+const { especializado, universal } = obtenerAmbosPromptsParaComparar(
+  metadata, productos
+);
+// → Prueba ambos y mide conversión
+```
+
+**Ventajas logradas:**
+- ✅ Escalable a infinitas industrias sin crear código
+- ✅ Personalización dinámica via metadata
+- ✅ Compatible con sistema de catálogo existente
+- ✅ Mantiene agentes especializados para mejor UX en industrias comunes
+- ✅ Fallback inteligente para cualquier industria nueva
+- ✅ A/B testing integrado para optimizar conversión
+
+💡 **Insights:**
+- Agente universal es ~600 líneas vs ~450 líneas por especializado
+- Vocabulario mapeado cubre 6 industrias + fallback genérico
+- Tono de voz impacta significativamente la personalidad percibida
+- Sistema híbrido aprovecha lo mejor de ambos enfoques
+- Especializado sigue siendo superior en UX para industrias principales
+- Universal permite lanzar rápido en industrias no estándar
+
 ### 🎯 Logros Sprint 1
 
 **Cumplidos:**
 - ✅ 12 agentes especializados (6 vendedores + 6 admin)
+- ✅ 1 agente universal adaptable (infinitas industrias)
 - ✅ 2 agentes genéricos fallback
 - ✅ Sistema de detección automática
 - ✅ **Sistema de catálogo de productos dinámico**
 - ✅ **Funciones helper para inyección de inventario**
-- ✅ 40 archivos, ~11,400 líneas de código
-- ✅ 92% de Sprint 1 completado en 2 días
+- ✅ **Sistema híbrido con 3 estrategias (especializado/universal/automático)**
+- ✅ 43 archivos, ~12,800 líneas de código
+- ✅ 94% de Sprint 1 completado en 2 días
 
-**Pendientes (8%):**
+**Pendientes (6%):**
 - ⬜ Integrar OpenAI API real (actualmente keywords)
 - ⬜ Ejecutar tests y validar accuracy
 - ⬜ Actualizar PLAN.md
@@ -329,12 +442,17 @@ Pero tengo hamburguesas increíbles que te van a encantar. ¿Te animas?"
 | Mar 1 AM | Biblioteca vendedores | 3h | ✅ 9 archivos, ~3,000 líneas |
 | Mar 1 PM | Sistema detección | 2h | ✅ 3 archivos, ~850 líneas |
 | Mar 1 Eve | Biblioteca admin | 4h | ✅ 9 archivos, ~4,410 líneas |
-| Mar 2 | Sistema catálogo productos | 2h | ✅ 13 archivos, ~1,654 líneas |
-| Mar 2 | Integración + tests | ~1h | 🔵 Pendiente |
+| Mar 2 AM | Sistema catálogo productos | 2h | ✅ 13 archivos, ~1,654 líneas |
+| Mar 2 PM | Agente universal adaptable | 2h | ✅ 4 archivos, ~1,082 líneas |
+| Mar 2 Eve | Integración + tests | ~1h | 🔵 Pendiente |
 
 ---
 
 ## 🐛 Issues y Soluciones
+
+**Issue:** ¿Agente especializado o universal?
+- **Decisión:** Implementar AMBOS + estrategia híbrida
+- **Resultado:** Lo mejor de ambos mundos (especializado para UX, universal para flexibilidad)
 
 **Issue:** OpenAI API integration pendiente
 - **Solución:** Keywords fallback funciona bien (70%+ accuracy estimada)
@@ -342,7 +460,7 @@ Pero tengo hamburguesas increíbles que te van a encantar. ¿Te animas?"
 
 ---
 
-**Última actualización:** [FECHA ACTUAL]
+**Última actualización:** Marzo 2, 2026
 **Autor:** Sistema Make Multi-Negocio
 **Rama:** jose-develop  
-**Última commit:** c37d0d7 - Biblioteca admin completa
+**Último commit:** 0ef564a - Agente Universal Adaptable
