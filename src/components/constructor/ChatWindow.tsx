@@ -49,6 +49,12 @@ export function ChatWindow({ idNegocio }: ChatWindowProps) {
   const historialIaRef = useRef<Array<{ role: "user" | "assistant"; content: string }>>([]);
   // Info parcial del negocio extraída por el orquestador
   const negocioParcialRef = useRef<Record<string, any>>({});
+  // Detect browser language once (BCP-47: "es", "en", "pt", etc.)
+  const idiomaRef = useRef<string>(
+    typeof navigator !== "undefined"
+      ? navigator.language.split("-")[0]
+      : "es"
+  );
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -75,6 +81,7 @@ export function ChatWindow({ idNegocio }: ChatWindowProps) {
           negocio_parcial: negocioParcialRef.current,
           fase_actual: fase_api,
           es_inicio: esInicio,
+          idioma: idiomaRef.current,
         }),
       });
 

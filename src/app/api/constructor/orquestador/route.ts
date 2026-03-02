@@ -53,6 +53,7 @@ export async function POST(request: Request) {
       negocio_parcial = null,
       fase_actual = "descubrimiento",
       es_inicio = false,
+      idioma = undefined,
     } = body;
 
     if (!mensaje) {
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
       fase_actual,
       historial: historial_mensajes,
       es_inicio,
+      idioma,
     });
 
     // 2. Preparar mensajes para la IA

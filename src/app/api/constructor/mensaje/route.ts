@@ -14,6 +14,8 @@ import {
   procesarNotasDeRespuesta,
 } from "@/lib/agentes/notas-agente";
 
+import { instruccionIdioma } from "@/lib/templates/constructor";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -23,7 +25,8 @@ export async function POST(request: Request) {
       mensaje,
       email_cliente,
       telefono_cliente,
-      historial_mensajes = []
+      historial_mensajes = [],
+      idioma = "es"
     } = body;
 
     if (!id_negocio || !fase || !mensaje) {
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
     const { data: negocio, error: errorNegocio } = await supabase
       .from("negocios")
       .select("*, productos(*)")
-      .eq("id", id_negocio)
+      .eq("id_negocio", id_negocio)
       .single();
     
     if (errorNegocio || !negocio) {
@@ -106,6 +109,10 @@ export async function POST(request: Request) {
       console.error("Error obteniendo template:", error);
       prompt_sistema = `Eres un asistente de ventas para ${negocio.nombre}. Ayuda al cliente de forma amigable y profesional.`;
     }
+
+    // 3c. Prepend language instruction
+    const lang_instr = instruccionIdioma(idioma);
+    if (lang_instr) prompt_sistema = `**IDIOMA:** ${lang_instr}\n\n` + prompt_sistema;
 
     // 3b. Inyectar notas del agente vendedor en el prompt
     try {

@@ -18,6 +18,8 @@ export interface ContextoOrquestador {
   fase_actual: string;
   historial: any[];
   es_inicio?: boolean;
+  /** BCP-47 language tag detected from the client, e.g. "es", "en", "pt", "fr" */
+  idioma?: string;
 }
 
 const GUIA_FASES: Record<string, string> = {
@@ -35,8 +37,29 @@ const GUIA_FASES: Record<string, string> = {
     "Muestra un resumen de todo lo recopilado. Pide confirmación final. Cuando el usuario confirme, incluye [[ACTIVAR_NEGOCIO]].",
 };
 
+/** Returns a short instructional prefix based on the BCP-47 language tag */
+export function instruccionIdioma(idioma?: string): string {
+  if (!idioma) return "";
+  const tag = idioma.toLowerCase().split("-")[0];
+  const langMap: Record<string, string> = {
+    es: "Responde siempre en español.",
+    en: "Always respond in English.",
+    pt: "Responda sempre em Português.",
+    fr: "Réponds toujours en Français.",
+    de: "Antworte immer auf Deutsch.",
+    it: "Rispondi sempre in Italiano.",
+    nl: "Antwoord altijd in het Nederlands.",
+    ar: "أجب دائماً باللغة العربية.",
+    zh: "始终用中文回答。",
+    ja: "常に日本語で回答してください。",
+    ko: "항상 한국어로 답하세요.",
+    ru: "Всегда отвечай на русском языке.",
+  };
+  return langMap[tag] ?? `Respond in the user's language (${idioma}).`;
+}
+
 export function generarPromptOrquestador(contexto: ContextoOrquestador): string {
-  const { negocio_parcial, fase_actual, es_inicio } = contexto;
+  const { negocio_parcial, fase_actual, es_inicio, idioma } = contexto;
 
   const info_acumulada =
     negocio_parcial && Object.keys(negocio_parcial).length > 0
@@ -47,7 +70,9 @@ export function generarPromptOrquestador(contexto: ContextoOrquestador): string 
     GUIA_FASES[fase_actual] ??
     "Continúa el proceso de configuración según el contexto.";
 
-  return `Eres el Orquestador de **Maket AI**, un agente especializado en guiar a emprendedores para crear su negocio digital desde cero.
+  const lang_instruccion = instruccionIdioma(idioma);
+
+  return `${lang_instruccion ? `**IDIOMA:** ${lang_instruccion}\n\n` : ""}Eres el Orquestador de **Maket AI**, un agente especializado en guiar a emprendedores para crear su negocio digital desde cero.
 
 ## Tu rol
 Recopilas TODA la información necesaria para lanzar un negocio funcional de forma conversacional, amigable y paso a paso.
