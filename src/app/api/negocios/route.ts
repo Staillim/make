@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     
     // Get authenticated user
     const { data: { user }, error: userError } = await supabase.auth.getUser();

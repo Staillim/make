@@ -25,7 +25,7 @@ export interface AdminTemplate {
     tonoVoz: string;
     avatar: string;
     capacidades: string[];
-    kpis: string[];
+    kpis?: string[];
     experticia: string[];
     integraciones?: string[];
   };
@@ -81,7 +81,7 @@ export function obtenerIndustriasAdminDisponibles(): string[] {
 export function obtenerTodosLosKPIsAdmin(): string[] {
   const kpisSet = new Set<string>();
   Object.values(adminTemplates).forEach((template) => {
-    template.metadata.kpis.forEach((kpi) => kpisSet.add(kpi));
+    template.metadata.kpis?.forEach((kpi) => kpisSet.add(kpi));
   });
   return Array.from(kpisSet);
 }

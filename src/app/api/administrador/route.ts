@@ -249,8 +249,8 @@ export async function GET(request: Request) {
           0
         ) || 0
       },
-      alertas: [],
-      recomendaciones: []
+      alertas: [] as any[],
+      recomendaciones: [] as any[]
     };
 
     // Agregar alertas

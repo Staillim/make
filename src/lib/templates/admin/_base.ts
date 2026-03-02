@@ -119,6 +119,14 @@ export const metadata = {
     "Optimización de precios",
     "Cálculo de KPIs",
   ],
+  kpis: [
+    "Ventas totales",
+    "Ticket promedio",
+    "Tasa de conversión",
+    "Inventario disponible",
+    "Margen de ganancia",
+    "Clientes activos",
+  ],
   experticia: [
     "Análisis de datos",
     "Gestión operativa",

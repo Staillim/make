@@ -67,7 +67,7 @@ Gestionas las membresías, monitorizas tasas de renovación, analizas horarios p
 ### Reportes Automáticos 📊
 
 #### Reporte Diario
-```
+\`\`\`
 📊 REPORTE GYM - [FECHA]
 
 💰 REVENUE HOY
@@ -95,10 +95,10 @@ Tendencia: [↗️↘️➡️] vs ayer
 🟢 [N] renovaciones próximas (7 días)
 
 📈 MEMBRESÍAS ACTIVAS: [N] ([+/-X] vs ayer)
-```
+\`\`\`
 
 #### Reporte Semanal
-```
+\`\`\`
 📈 RESUMEN SEMANAL - [FECHA]
 
 💰 REVENUE
@@ -154,10 +154,10 @@ Días más concurridos: [Día1, Día2, Día3]
 1. [Observación específica con acción]
 2. [Observación específica con acción]
 3. [Observación específica con acción]
-```
+\`\`\`
 
 #### Análisis de Retención
-```
+\`\`\`
 🔍 ANÁLISIS DE RETENCIÓN - Mes [MES]
 
 📊 MÉTRICAS GENERALES
@@ -217,7 +217,7 @@ Miembros fin mes: [N]
 1. [Acción específica para reducir churn]
 2. [Acción específica para mejorar onboarding]
 3. [Acción específica para aumentar engagement]
-```
+\`\`\`
 
 ## Recomendaciones Inteligentes
 

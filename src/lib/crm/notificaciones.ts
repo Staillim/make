@@ -173,7 +173,7 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
       url_cta: "{{url_tienda}}"
     },
     sms: {
-      mensaje: `${nombre}: ${descuento}% OFF con código ${codigo}. Válido hasta ${fecha_expiracion}. ${url_tienda}`
+      mensaje: `{{nombre}}: {{descuento}}% OFF con código {{codigo}}. Válido hasta {{fecha_expiracion}}. {{url_tienda}}`
     },
     variables: ["nombre", "descuento", "codigo", "fecha_expiracion", "url_tienda"],
     frecuencia_maxima_dias: 14
@@ -198,7 +198,7 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
       incluir_imagen: true
     },
     sms: {
-      mensaje: `${nombre}: Productos nuevos que te pueden gustar. ${url_tienda}`
+      mensaje: `{{nombre}}: Productos nuevos que te pueden gustar. {{url_tienda}}`
     },
     variables: ["nombre", "productos_html", "productos_texto", "url_tienda"],
     frecuencia_maxima_dias: 7
@@ -217,13 +217,13 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
         <p>Código: <code>{{codigo}}</code></p>
         <a href="{{url_tienda}}">Volver a la tienda</a>
       `,
-      texto_plano: `Hola ${nombre}, te extrañamos! ${descuento}% OFF con código ${codigo}.`
+      texto_plano: `Hola {{nombre}}, te extrañamos! {{descuento}}% OFF con código {{codigo}}.`
     },
     whatsapp: {
       mensaje: `💙 ¡Hola {{nombre}}! Hace {{dias_inactivo}} días que no te vemos. Te dejamos {{descuento}}% OFF con código *{{codigo}}* ¡Esperamos verte pronto! 🎁`
     },
     sms: {
-      mensaje: `Te extrañamos ${nombre}! ${descuento}% OFF con ${codigo}. ${url_tienda}`
+      mensaje: `Te extrañamos {{nombre}}! {{descuento}}% OFF con {{codigo}}. {{url_tienda}}`
     },
     variables: ["nombre", "dias_inactivo", "descuento", "codigo", "url_tienda"],
     frecuencia_maxima_dias: 30,
@@ -243,14 +243,14 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
         <p>¿Los terminamos de comprar?</p>
         <a href="{{url_carrito}}">Completar compra</a>
       `,
-      texto_plano: `Hola ${nombre}, dejaste productos en tu carrito: ${productos_texto}. Complétalos aquí: ${url_carrito}`
+      texto_plano: `Hola {{nombre}}, dejaste productos en tu carrito: {{productos_texto}}. Complétalos aquí: {{url_carrito}}`
     },
     whatsapp: {
       mensaje: `🛒 ¡Hola {{nombre}}! Dejaste productos en tu carrito:\n\n{{productos_texto}}\n\n¿Los terminamos de comprar? 😊`,
       url_cta: "{{url_carrito}}"
     },
     sms: {
-      mensaje: `${nombre}: Productos en tu carrito esperándote. ${url_carrito}`
+      mensaje: `{{nombre}}: Productos en tu carrito esperándote. {{url_carrito}}`
     },
     variables: ["nombre", "productos_html", "productos_texto", "url_carrito"],
     frecuencia_maxima_dias: 1
@@ -269,13 +269,13 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
         <p>¡Que tengas un día increíble! 🎈</p>
         <a href="{{url_tienda}}">Usa tu regalo</a>
       `,
-      texto_plano: `¡Feliz cumpleaños ${nombre}! 🎂 Te regalamos ${descuento}% OFF con código ${codigo}.`
+      texto_plano: `¡Feliz cumpleaños {{nombre}}! 🎂 Te regalamos {{descuento}}% OFF con código {{codigo}}.`
     },
     whatsapp: {
       mensaje: `🎂 ¡Feliz cumpleaños {{nombre}}! 🎉 Te regalamos {{descuento}}% OFF con código *{{codigo}}*. ¡Que lo disfrutes! 🎈`
     },
     sms: {
-      mensaje: `Feliz cumpleaños ${nombre}! ${descuento}% OFF de regalo. Código: ${codigo}`
+      mensaje: `Feliz cumpleaños {{nombre}}! {{descuento}}% OFF de regalo. Código: {{codigo}}`
     },
     variables: ["nombre", "descuento", "codigo", "url_tienda"],
     frecuencia_maxima_dias: 365
@@ -292,18 +292,18 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
         <p>Hola {{nombre}}, acabamos de lanzar:</p>
         <h3>{{producto_nombre}}</h3>
         <p>{{producto_descripcion}}</p>
-        <p><strong>Precio lanzamiento: ${{producto_precio}}</strong></p>
+        <p><strong>Precio lanzamiento: \${{producto_precio}}</strong></p>
         <a href="{{url_producto}}">Ver producto</a>
       `,
-      texto_plano: `Hola ${nombre}, nuevo producto: ${producto_nombre}. $${producto_precio}. ${url_producto}`
+      texto_plano: `Hola {{nombre}}, nuevo producto: {{producto_nombre}}. \${{producto_precio}}. {{url_producto}}`
     },
     whatsapp: {
-      mensaje: `🚀 ¡Hola {{nombre}}! Lanzamos algo nuevo:\n\n*{{producto_nombre}}*\n{{producto_descripcion}}\n\nPrecio: ${{producto_precio}} 💰`,
+      mensaje: `🚀 ¡Hola {{nombre}}! Lanzamos algo nuevo:\n\n*{{producto_nombre}}*\n{{producto_descripcion}}\n\nPrecio: \${{producto_precio}} 💰`,
       incluir_imagen: true,
       url_cta: "{{url_producto}}"
     },
     sms: {
-      mensaje: `${producto_nombre} nuevo! $${producto_precio}. ${url_producto}`
+      mensaje: `{{producto_nombre}} nuevo! \${{producto_precio}}. {{url_producto}}`
     },
     variables: ["nombre", "producto_nombre", "producto_descripcion", "producto_precio", "url_producto"],
     frecuencia_maxima_dias: 3
@@ -323,14 +323,14 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
         <p><strong>Solo para VIPs: {{descuento}}% adicional</strong></p>
         <a href="{{url_exclusiva}}">Acceso VIP</a>
       `,
-      texto_plano: `VIP ${nombre}: Acceso exclusivo a ${oferta_titulo}. ${descuento}% OFF. ${url_exclusiva}`
+      texto_plano: `VIP {{nombre}}: Acceso exclusivo a {{oferta_titulo}}. {{descuento}}% OFF. {{url_exclusiva}}`
     },
     whatsapp: {
       mensaje: `⭐ ¡Hola {{nombre}}! Como cliente VIP tienes acceso exclusivo:\n\n*{{oferta_titulo}}*\n\n{{descuento}}% adicional 💎`,
       url_cta: "{{url_exclusiva}}"
     },
     sms: {
-      mensaje: `VIP ${nombre}: ${oferta_titulo}. ${descuento}% OFF. ${url_exclusiva}`
+      mensaje: `VIP {{nombre}}: {{oferta_titulo}}. {{descuento}}% OFF. {{url_exclusiva}}`
     },
     variables: ["nombre", "oferta_titulo", "oferta_descripcion", "descuento", "url_exclusiva"],
     frecuencia_maxima_dias: 7
@@ -348,13 +348,13 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
         <p>¿Todo salió bien? Nos encantaría saber tu opinión 😊</p>
         <a href="{{url_encuesta}}">Dejar opinión</a>
       `,
-      texto_plano: `Hola ${nombre}, ¿cómo te fue con ${producto_nombre}? Cuéntanos: ${url_encuesta}`
+      texto_plano: `Hola {{nombre}}, ¿cómo te fue con {{producto_nombre}}? Cuéntanos: {{url_encuesta}}`
     },
     whatsapp: {
       mensaje: `¡Hola {{nombre}}! 👋 ¿Cómo te fue con tu compra de {{producto_nombre}}? Nos encantaría saber tu opinión 😊`
     },
     sms: {
-      mensaje: `${nombre}: ¿Cómo te fue con tu compra? Cuéntanos: ${url_encuesta}`
+      mensaje: `{{nombre}}: ¿Cómo te fue con tu compra? Cuéntanos: {{url_encuesta}}`
     },
     variables: ["nombre", "producto_nombre", "url_encuesta"],
     frecuencia_maxima_dias: 7
@@ -373,13 +373,13 @@ export const TEMPLATES_NOTIFICACIONES: Record<TipoNotificacion, TemplateNotifica
         <a href="{{url_encuesta}}">Responder encuesta</a>
         <p><small>Como agradecimiento, te daremos {{incentivo}}</small></p>
       `,
-      texto_plano: `Hola ${nombre}, tu opinión es importante. Encuesta de 2 min: ${url_encuesta}. Regalo: ${incentivo}`
+      texto_plano: `Hola {{nombre}}, tu opinión es importante. Encuesta de 2 min: {{url_encuesta}}. Regalo: {{incentivo}}`
     },
     whatsapp: {
       mensaje: `¡Hola {{nombre}}! 💎 Tu opinión vale oro. ¿2 minutos para una encuesta? Te daremos {{incentivo}} como gracias 🎁`
     },
     sms: {
-      mensaje: `${nombre}: Tu opinión importa. 2 min: ${url_encuesta}. Regalo: ${incentivo}`
+      mensaje: `{{nombre}}: Tu opinión importa. 2 min: {{url_encuesta}}. Regalo: {{incentivo}}`
     },
     variables: ["nombre", "url_encuesta", "incentivo"],
     frecuencia_maxima_dias: 90

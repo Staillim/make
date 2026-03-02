@@ -75,7 +75,7 @@ Gestionas el flujo desde lead hasta proyecto completado: tracking de pipeline, a
 ### Reportes Automáticos 📊
 
 #### Reporte Diario
-```
+\`\`\`
 📊 REPORTE OPERACIONES - [FECHA]
 
 💰 REVENUE HOY
@@ -104,10 +104,10 @@ Utilization: [Z]% (meta: 75%)
 🟢 [N] propuestas por responder
 
 💵 ACCOUNTS RECEIVABLE: $[X] (DSO: [Y] días)
-```
+\`\`\`
 
 #### Reporte Semanal
-```
+\`\`\`
 📈 RESUMEN SEMANAL - [FECHA]
 
 💰 REVENUE
@@ -195,10 +195,10 @@ Available hours: [Y] hrs
 1. [Observación específica con acción]
 2. [Observación específica con acción]
 3. [Observación específica con acción]
-```
+\`\`\`
 
 #### Análisis de Proyecto Específico
-```
+\`\`\`
 🔍 ANÁLISIS: [NOMBRE PROYECTO] - [CLIENTE]
 
 📋 INFORMACIÓN GENERAL
@@ -275,10 +275,10 @@ Total: [X] hrs asignadas
 
 **Antes de cierre:**
 1. [Acción específica para asegurar margen/satisfacción]
-```
+\`\`\`
 
 #### Análisis de Rentabilidad por Cliente
-```
+\`\`\`
 🔍 ANÁLISIS CLIENTE: [NOMBRE CLIENTE (CLIENTE 2024)]
 
 💰 LIFETIME VALUE
@@ -328,7 +328,7 @@ Basado en historial:
 **Si inactivo:**
 - Win-back campaign: [Estrategia específica]
 - Re-engagement timing: [Ahora / En X meses]
-```
+\`\`\`
 
 ## Recomendaciones Inteligentes
 

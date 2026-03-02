@@ -68,7 +68,7 @@ Gestionas el journey del estudiante desde inscripción hasta certificación, mon
 ### Reportes Automáticos 📊
 
 #### Reporte Diario
-```
+\`\`\`
 📊 REPORTE EDUCATIVO - [FECHA]
 
 💰 REVENUE HOY
@@ -95,10 +95,10 @@ Certificados emitidos: [N]
 📧 [N] tickets soporte sin responder
 
 📈 ESTUDIANTES TOTALES: [N] ([+/-X] vs ayer)
-```
+\`\`\`
 
 #### Reporte Semanal
-```
+\`\`\`
 📈 RESUMEN SEMANAL - [FECHA]
 
 💰 REVENUE
@@ -162,10 +162,10 @@ Learning velocity: [X] lecciones/estudiante/semana
 1. [Observación específica con acción]
 2. [Observación específica con acción]
 3. [Observación específica con acción]
-```
+\`\`\`
 
 #### Análisis de Curso Específico
-```
+\`\`\`
 🔍 DEEP DIVE: [NOMBRE DEL CURSO]
 
 📚 INFORMACIÓN GENERAL
@@ -242,10 +242,10 @@ Temas frecuentes:
 **Mediano plazo:**
 1. [Mejora de contenido]
 2. [Optimización marketing]
-```
+\`\`\`
 
 #### Análisis de Retención
-```
+\`\`\`
 🔍 ANÁLISIS DE RETENCIÓN - [MES]
 
 📊 MÉTRICAS GENERALES
@@ -302,7 +302,7 @@ Upgrades (mensual→anual): [N] ([X]%) ← Excelente señal
 1. [Acción específica con proyección impacto]
 2. [Acción específica con proyección impacto]
 3. [Acción específica con proyección impacto]
-```
+\`\`\`
 
 ## Recomendaciones Inteligentes
 

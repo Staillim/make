@@ -19,8 +19,8 @@ import {
   registrarCompra
 } from "@/lib/crm";
 import type { MensajeConversacion } from "@/lib/crm";
-import { detectarIndustria } from "@/lib/constructor/detector";
-import { obtenerPlantillaVendedor } from "@/lib/templates/vendedor";
+import { detectarTipoNegocio } from "@/lib/constructor/detector";
+import { obtenerTemplateVendedor } from "@/lib/templates/vendedor";
 
 // Configuración de OpenAI
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -127,10 +127,10 @@ export async function POST(request: NextRequest) {
     }
     
     // Detectar industria (o usar la configurada)
-    const industria = negocio.industria || await detectarIndustria(negocio.descripcion || "");
+    const industria = negocio.industria || (await detectarTipoNegocio(negocio.descripcion || "")).tipo;
     
     // Obtener plantilla del agente según industria
-    const plantilla_agente = obtenerPlantillaVendedor(industria);
+    const plantilla_agente = obtenerTemplateVendedor(industria);
     
     // ==================================================================
     // PASO 3: OBTENER CATÁLOGO DE PRODUCTOS
@@ -279,7 +279,8 @@ export async function POST(request: NextRequest) {
         id_negocio,
         mensajes_crm,
         {
-          openai_api_key: OPENAI_API_KEY,
+          api_key: OPENAI_API_KEY!,
+          provider: "openai",
           catalogo_productos: catalogo_nombres
         },
         {

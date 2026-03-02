@@ -382,7 +382,7 @@ function calcularSentimientoPromedio(eventos: any[]): number {
     });
   
   if (sentimientos.length === 0) return 0;
-  return sentimientos.reduce((a, b) => a + b, 0) / sentimientos.length;
+  return (sentimientos as number[]).reduce((a, b) => a + b, 0) / sentimientos.length;
 }
 
 function contarSesionesUnicas(eventos: any[], tipo: TipoEvento): number {

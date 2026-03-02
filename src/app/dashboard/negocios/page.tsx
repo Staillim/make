@@ -247,7 +247,7 @@ export default function NegociosPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleEliminar(negocio.id_negocio, negocio.nombre)}
+                      onClick={() => handleEliminar(negocio.id_negocio, negocio.nombre || "Sin nombre")}
                       disabled={eliminando === negocio.id_negocio}
                       className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                     >

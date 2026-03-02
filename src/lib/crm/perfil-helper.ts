@@ -6,7 +6,6 @@
  */
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../database.types";
 import {
   PerfilCliente,
   ResumenPerfil,
@@ -30,7 +29,10 @@ import {
   type TipoNotificacion
 } from "./notificaciones";
 
-export type Supabase = SupabaseClient<Database>;
+// CRM tables (perfiles_clientes, conversaciones_clientes, eventos_clientes)
+// are defined in SQL migrations but not yet in database.types.ts auto-generated types.
+// Using untyped client for CRM operations.
+export type Supabase = SupabaseClient;
 
 /**
  * Resultado de creación/actualización de perfil
@@ -175,10 +177,10 @@ export async function registrarConversacion(
     const informacion_extraida = await extraerInformacionConversacion(mensajes, config_ia);
     
     // Calcular sentiment score
-    const sentiment_score = calcularSentimentScore(informacion_extraida.sentimiento);
+    const sentiment_score = calcularSentimentScore(informacion_extraida.sentimiento || "neutral");
     
     // Productos mencionados
-    const productos_mencionados = informacion_extraida.preferencias_detectadas.productos;
+    const productos_mencionados = informacion_extraida.preferencias_detectadas?.productos || [];
     
     // Guardar conversación
     const conversacion = {
@@ -259,7 +261,7 @@ async function actualizarPerfilConInformacion(
     };
     
     // Agregar productos nuevos
-    const productos_nuevos = informacion.preferencias_detectadas.productos.filter(
+    const productos_nuevos = (informacion.preferencias_detectadas?.productos || []).filter(
       p => !preferencias.productos_favoritos.includes(p)
     );
     
@@ -272,7 +274,7 @@ async function actualizarPerfilConInformacion(
     }
     
     // Agregar categorías nuevas
-    const categorias_nuevas = informacion.preferencias_detectadas.categorias.filter(
+    const categorias_nuevas = (informacion.preferencias_detectadas?.categorias || []).filter(
       c => !preferencias.categorias_interes.includes(c)
     );
     
@@ -285,7 +287,7 @@ async function actualizarPerfilConInformacion(
     }
     
     // Actualizar rango de precio si es más específico
-    if (informacion.preferencias_detectadas.rango_precio) {
+    if (informacion.preferencias_detectadas?.rango_precio) {
       preferencias.rango_precio_preferido = informacion.preferencias_detectadas.rango_precio;
       actualizaciones.push("Rango de precio actualizado");
     }
@@ -296,21 +298,21 @@ async function actualizarPerfilConInformacion(
       puntos_dolor: []
     };
     
-    if (informacion.contexto_detectado.ocasion) {
+    if (informacion.contexto_detectado?.ocasion) {
       contexto.ocasion_compra = informacion.contexto_detectado.ocasion;
       actualizaciones.push("Ocasión de compra detectada");
     }
     
-    if (informacion.contexto_detectado.para_quien) {
+    if (informacion.contexto_detectado?.para_quien) {
       contexto.quien_es_para = informacion.contexto_detectado.para_quien;
     }
     
-    if (informacion.contexto_detectado.urgencia) {
+    if (informacion.contexto_detectado?.urgencia) {
       contexto.nivel_urgencia = informacion.contexto_detectado.urgencia;
     }
     
     // Agregar nuevas objeciones
-    const objeciones_nuevas = informacion.contexto_detectado.objeciones.filter(
+    const objeciones_nuevas = (informacion.contexto_detectado?.objeciones || []).filter(
       o => !contexto.objeciones_comunes.includes(o)
     );
     
@@ -331,17 +333,17 @@ async function actualizarPerfilConInformacion(
       ultima_actualizacion_ia: new Date().toISOString()
     };
     
-    if (informacion.datos_contacto.nombre && !perfil_actual.nombre) {
+    if (informacion.datos_contacto?.nombre && !perfil_actual.nombre) {
       updates.nombre = informacion.datos_contacto.nombre;
       actualizaciones.push("Nombre actualizado");
     }
     
-    if (informacion.datos_contacto.email && !perfil_actual.email) {
+    if (informacion.datos_contacto?.email && !perfil_actual.email) {
       updates.email = informacion.datos_contacto.email;
       actualizaciones.push("Email actualizado");
     }
     
-    if (informacion.datos_contacto.telefono && !perfil_actual.telefono) {
+    if (informacion.datos_contacto?.telefono && !perfil_actual.telefono) {
       updates.telefono = informacion.datos_contacto.telefono;
       actualizaciones.push("Teléfono actualizado");
     }
@@ -350,7 +352,7 @@ async function actualizarPerfilConInformacion(
     const productos_consultados = [
       ...new Set([
         ...(perfil_actual.productos_consultados || []),
-        ...informacion.preferencias_detectadas.productos
+        ...(informacion.preferencias_detectadas?.productos || [])
       ])
     ].slice(0, 50); // Máximo 50
     
