@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ProgressSidebar } from "./ProgressSidebar";
@@ -12,157 +12,24 @@ interface ChatWindowProps {
   idNegocio: string;
 }
 
-// Bot responses per phase
-function getBotResponse(
-  fase: FaseConstructor,
-  userMessage?: string
-): { contenido: string; opciones?: OpcionRapida[]; avanzar?: boolean } {
-  switch (fase) {
-    case "inicio":
-      return {
-        contenido:
-          "¡Hola! 👋 Soy tu asistente para crear tu negocio autónomo.\n\nVamos a construirlo paso a paso. Será rápido y sencillo.\n\n¿Qué tipo de negocio quieres crear?",
-        opciones: [
-          { label: "🛍️ Tienda de ropa", valor: "tienda_ropa" },
-          { label: "💻 Tecnología", valor: "tecnologia" },
-          { label: "🎨 Artesanías", valor: "artesanias" },
-          { label: "🍔 Alimentos", valor: "alimentos" },
-          { label: "📚 Productos digitales", valor: "digital" },
-        ],
-        avanzar: true,
-      };
-
-    case "tipo_negocio":
-      return {
-        contenido: `¡Excelente elección! Veo que quieres crear un negocio de "${userMessage}".\n\n¿Tus productos serán físicos o digitales?`,
-        opciones: [
-          { label: "📦 Físicos", valor: "fisico" },
-          { label: "💾 Digitales", valor: "digital" },
-          { label: "🔄 Ambos", valor: "mixto" },
-        ],
-        avanzar: false,
-      };
-
-    case "plantilla":
-      return {
-        contenido:
-          "Perfecto. Ahora vamos a elegir una plantilla para tu tienda.\n\nEstas son las plantillas disponibles para tu tipo de negocio:",
-        opciones: [
-          { label: "✨ Minimal", valor: "minimal" },
-          { label: "🎯 Modern", valor: "modern" },
-          { label: "🏛️ Classic", valor: "classic" },
-          { label: "🌈 Colorful", valor: "colorful" },
-        ],
-        avanzar: true,
-      };
-
-    case "marca":
-      return {
-        contenido:
-          "¡Buena elección! Ahora definamos la identidad de tu marca.\n\n¿Cómo se llamará tu negocio?",
-        avanzar: false,
-      };
-
-    case "personalizacion":
-      return {
-        contenido:
-          "¡Me encanta el nombre! 🎨 Ahora vamos a personalizar tu plantilla.\n\n¿Qué estilo visual prefieres?",
-        opciones: [
-          { label: "🖤 Minimalista", valor: "minimalista" },
-          { label: "✨ Elegante", valor: "elegante" },
-          { label: "🎉 Juvenil", valor: "juvenil" },
-          { label: "💼 Profesional", valor: "profesional" },
-        ],
-        avanzar: true,
-      };
-
-    case "catalogo":
-      return {
-        contenido:
-          "Perfecto. Ahora configuremos tu catálogo de productos.\n\n¿Qué categorías de productos tendrás?",
-        opciones: [
-          { label: "👕 Camisetas", valor: "camisetas" },
-          { label: "👖 Pantalones", valor: "pantalones" },
-          { label: "👟 Zapatos", valor: "zapatos" },
-          { label: "👜 Accesorios", valor: "accesorios" },
-        ],
-        avanzar: true,
-      };
-
-    case "reglas_dominio":
-      return {
-        contenido:
-          "He generado las reglas de dominio automáticamente para tu negocio. Esto asegura que los agentes IA solo operen dentro de tu nicho.\n\n✅ Dominio: Moda y accesorios\n❌ Bloqueado: Comida, tecnología, salud\n🔑 Keywords: ropa, estilo, moda, outfit\n\n¿Deseas ajustar algo?",
-        opciones: [
-          { label: "✅ Todo bien", valor: "confirmar" },
-          { label: "✏️ Ajustar", valor: "ajustar" },
-        ],
-        avanzar: true,
-      };
-
-    case "agentes":
-      return {
-        contenido:
-          "¡Genial! Ahora vamos a configurar tus agentes IA.\n\n¿Cómo quieres que se llame tu asesora de ventas?",
-        opciones: [
-          { label: "👩 Sofía", valor: "Sofia" },
-          { label: "👩 Luna", valor: "Luna" },
-          { label: "👩 María", valor: "Maria" },
-          { label: "🤖 Personalizado", valor: "personalizado" },
-        ],
-        avanzar: false,
-      };
-
-    case "comercial":
-      return {
-        contenido:
-          "Perfecto. Ahora configuremos la parte comercial.\n\n¿Qué métodos de pago aceptarás?",
-        opciones: [
-          { label: "💳 Tarjeta", valor: "tarjeta" },
-          { label: "🏦 Transferencia", valor: "transferencia" },
-          { label: "🚚 Contra entrega", valor: "contra_entrega" },
-          { label: "💰 Todos", valor: "todos" },
-        ],
-        avanzar: true,
-      };
-
-    case "automatizaciones":
-      return {
-        contenido:
-          "¡Casi terminamos! Activa las automatizaciones que desees:\n\n📦 Alertas de stock bajo\n🤝 Recomendaciones automáticas\n🔄 Cross-selling\n📊 Reporte diario\n\n¿Quieres activar todas?",
-        opciones: [
-          { label: "✅ Activar todas", valor: "todas" },
-          { label: "📦 Solo alertas", valor: "alertas" },
-          { label: "📊 Solo reportes", valor: "reportes" },
-        ],
-        avanzar: true,
-      };
-
-    case "activacion":
-      return {
-        contenido:
-          "🎉 ¡Tu negocio está listo!\n\nHemos configurado:\n✅ Tipo de negocio y dominio\n✅ Plantilla personalizada\n✅ Identidad de marca\n✅ Catálogo de productos\n✅ Reglas de dominio\n✅ Agente vendedor IA\n✅ Agente administrador IA\n✅ Métodos de pago\n✅ Automatizaciones\n\n¿Deseas activarlo ahora?",
-        opciones: [
-          { label: "🚀 ¡Activar ahora!", valor: "activar" },
-          { label: "👀 Ver preview primero", valor: "preview" },
-        ],
-        avanzar: true,
-      };
-
-    default:
-      return {
-        contenido: "Gracias por tu respuesta. Continuemos con el siguiente paso.",
-        avanzar: true,
-      };
-  }
+/** Mapeo UI-phase → API-phase usado por el Orquestador */
+function uiPhaseToApiPhase(fase: FaseConstructor): string {
+  const map: Partial<Record<FaseConstructor, string>> = {
+    inicio: "descubrimiento",
+    tipo_negocio: "descubrimiento",
+    plantilla: "identidad",
+    marca: "identidad",
+    personalizacion: "identidad",
+    catalogo: "productos",
+    reglas_dominio: "productos",
+    agentes: "agentes",
+    comercial: "operaciones",
+    automatizaciones: "activacion",
+    activacion: "activacion",
+    completado: "activacion",
+  };
+  return map[fase] ?? "descubrimiento";
 }
-
-// Sub-step logic within phases  
-const FASE_SUBSTEPS: Partial<Record<FaseConstructor, number>> = {
-  tipo_negocio: 2, // tipo + tipo_producto
-  marca: 3, // nombre + slogan + colores
-  agentes: 2, // vendedor + admin
-};
 
 export function ChatWindow({ idNegocio }: ChatWindowProps) {
   const {
@@ -176,8 +43,12 @@ export function ChatWindow({ idNegocio }: ChatWindowProps) {
 
   const actualizarNegocio = useNegocioStore((s) => s.actualizarNegocio);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const subStepRef = useRef<number>(0);
   const inicializadoRef = useRef(false);
+
+  // Historial en formato IA (role: user | assistant)
+  const historialIaRef = useRef<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  // Info parcial del negocio extraída por el orquestador
+  const negocioParcialRef = useRef<Record<string, any>>({});
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -186,26 +57,111 @@ export function ChatWindow({ idNegocio }: ChatWindowProps) {
     }
   }, [mensajes]);
 
-  // Initial bot message
+  /** Llama al Orquestador y procesa la respuesta */
+  const callOrquestador = useCallback(
+    async (
+      mensaje: string,
+      esInicio = false
+    ): Promise<{ contenido: string; opciones?: OpcionRapida[] }> => {
+      const fase_api = uiPhaseToApiPhase(progreso.fase_actual);
+
+      const res = await fetch("/api/constructor/orquestador", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_negocio: idNegocio,
+          mensaje,
+          historial_mensajes: historialIaRef.current,
+          negocio_parcial: negocioParcialRef.current,
+          fase_actual: fase_api,
+          es_inicio: esInicio,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Error en el servidor");
+      }
+
+      const data = await res.json();
+
+      // Actualizar historial IA local
+      historialIaRef.current = [
+        ...historialIaRef.current,
+        { role: "user", content: mensaje },
+        { role: "assistant", content: data.respuesta },
+      ];
+
+      // Acumular información extraída
+      if (data.informacion_extraida) {
+        negocioParcialRef.current = {
+          ...negocioParcialRef.current,
+          ...data.informacion_extraida,
+        };
+      }
+
+      // Avanzar fase en el sidebar
+      if (data.avanzar_fase) {
+        avanzarFase();
+      }
+
+      // Activar negocio en el store si el orquestador lo indica
+      if (data.negocio_activado) {
+        actualizarNegocio(idNegocio, {
+          estado: "activo",
+          nombre: negocioParcialRef.current.nombre_negocio ?? "Mi Negocio",
+          url_tienda: `/tienda/${idNegocio}`,
+        });
+      }
+
+      const opciones: OpcionRapida[] | undefined = data.opciones_rapidas
+        ? data.opciones_rapidas.map((o: any) =>
+            typeof o === "string" ? { label: o, valor: o } : o
+          )
+        : undefined;
+
+      return { contenido: data.respuesta, opciones };
+    },
+    [idNegocio, progreso.fase_actual, avanzarFase, actualizarNegocio]
+  );
+
+  // Mensaje de bienvenida al montar el componente
   useEffect(() => {
     if (!inicializadoRef.current && mensajes.length === 0) {
       inicializadoRef.current = true;
-      const response = getBotResponse("inicio");
-      setTimeout(() => {
-        agregarMensaje({
-          id: crypto.randomUUID(),
-          rol: "bot",
-          contenido: response.contenido,
-          timestamp: new Date().toISOString(),
-          opciones: response.opciones,
-        });
-        avanzarFase(); // Move from inicio to tipo_negocio
-      }, 500);
+      setCargando(true);
+      callOrquestador("START", true)
+        .then(({ contenido, opciones }) => {
+          agregarMensaje({
+            id: crypto.randomUUID(),
+            rol: "bot",
+            contenido,
+            timestamp: new Date().toISOString(),
+            opciones,
+          });
+        })
+        .catch(() => {
+          agregarMensaje({
+            id: crypto.randomUUID(),
+            rol: "bot",
+            contenido:
+              "¡Hola! 👋 Soy tu asistente para crear tu negocio. ¿Qué tipo de negocio quieres crear?",
+            timestamp: new Date().toISOString(),
+            opciones: [
+              { label: "🛍️ Tienda de ropa", valor: "Tienda de ropa" },
+              { label: "🍔 Restaurante", valor: "Restaurante" },
+              { label: "💻 Tecnología", valor: "Tecnología" },
+              { label: "💪 Fitness / Gym", valor: "Fitness" },
+              { label: "🎨 Artesanías", valor: "Artesanías" },
+            ],
+          });
+        })
+        .finally(() => setCargando(false));
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sendMessage = (texto: string) => {
-    // Add user message
+  const sendMessage = async (texto: string) => {
+    // Mostrar mensaje del usuario inmediatamente
     const userMsg: MensajeChat = {
       id: crypto.randomUUID(),
       rol: "usuario",
@@ -213,117 +169,32 @@ export function ChatWindow({ idNegocio }: ChatWindowProps) {
       timestamp: new Date().toISOString(),
     };
     agregarMensaje(userMsg);
-
-    // Show typing indicator
     setCargando(true);
 
-    const faseActual = progreso.fase_actual;
-    const maxSubSteps = FASE_SUBSTEPS[faseActual] || 1;
-    subStepRef.current += 1;
-
-    setTimeout(() => {
-      const shouldAdvance = subStepRef.current >= maxSubSteps;
-
-      if (shouldAdvance) {
-        subStepRef.current = 0;
-
-        // If activation phase and user says activate
-        if (faseActual === "activacion" && (texto.includes("activar") || texto === "activar")) {
-          actualizarNegocio(idNegocio, {
-            estado: "activo",
-            nombre: "Mi Negocio",
-            url_tienda: `/tienda/${idNegocio}`,
-          });
-
-          agregarMensaje({
-            id: crypto.randomUUID(),
-            rol: "bot",
-            contenido:
-              "🚀 ¡Felicidades! Tu negocio ha sido activado exitosamente.\n\n🔗 Tu tienda está disponible en:\nmaketai.com/tienda/" +
-              idNegocio.slice(0, 8) +
-              "\n\nPuedes volver al dashboard para gestionar tu negocio o visitar tu nueva tienda.",
-            timestamp: new Date().toISOString(),
-          });
-          setCargando(false);
-          return;
-        }
-
-        // Advance to next phase
-        avanzarFase();
-
-        // Get next phase response
-        const nextFase = progreso.fase_actual;
-        // We need the next one after advancing
-        const faseIndex =
-          [
-            "inicio",
-            "tipo_negocio",
-            "plantilla",
-            "marca",
-            "personalizacion",
-            "catalogo",
-            "reglas_dominio",
-            "agentes",
-            "comercial",
-            "automatizaciones",
-            "activacion",
-          ].indexOf(faseActual) + 1;
-        const siguienteFase = [
-          "inicio",
-          "tipo_negocio",
-          "plantilla",
-          "marca",
-          "personalizacion",
-          "catalogo",
-          "reglas_dominio",
-          "agentes",
-          "comercial",
-          "automatizaciones",
-          "activacion",
-        ][faseIndex] as FaseConstructor;
-
-        const response = getBotResponse(siguienteFase || faseActual, texto);
-
-        agregarMensaje({
-          id: crypto.randomUUID(),
-          rol: "bot",
-          contenido: response.contenido,
-          timestamp: new Date().toISOString(),
-          opciones: response.opciones,
-        });
-      } else {
-        // Sub-step response
-        let subResponse = "";
-        if (faseActual === "tipo_negocio") {
-          subResponse =
-            "Perfecto, productos " + texto + ". ¿Venderás a nivel local o internacional?";
-        } else if (faseActual === "marca") {
-          if (subStepRef.current === 1) {
-            subResponse = `¡"${texto}" es un gran nombre! ¿Tienes un slogan? Si no, puedo sugerirte uno.`;
-          } else {
-            subResponse = "Excelente. ¿Qué colores representan tu marca? Puedo sugerirte paletas.";
-          }
-        } else if (faseActual === "agentes") {
-          subResponse = `Perfecto, ${texto} será tu agente de ventas. ¿Y cómo quieres que se llame tu agente administrador?`;
-        } else {
-          subResponse = "Entendido. Continuemos con el siguiente punto.";
-        }
-
-        agregarMensaje({
-          id: crypto.randomUUID(),
-          rol: "bot",
-          contenido: subResponse,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
+    try {
+      const { contenido, opciones } = await callOrquestador(texto);
+      agregarMensaje({
+        id: crypto.randomUUID(),
+        rol: "bot",
+        contenido,
+        timestamp: new Date().toISOString(),
+        opciones,
+      });
+    } catch (error) {
+      console.error("Error enviando mensaje:", error);
+      agregarMensaje({
+        id: crypto.randomUUID(),
+        rol: "bot",
+        contenido:
+          "Lo siento, tuve un problema de conexión. ¿Puedes repetir tu mensaje?",
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
       setCargando(false);
-    }, 1000);
+    }
   };
 
-  const handleOptionClick = (valor: string) => {
-    sendMessage(valor);
-  };
+  const handleOptionClick = (valor: string) => sendMessage(valor);
 
   return (
     <div className="flex h-[calc(100vh-64px)]">

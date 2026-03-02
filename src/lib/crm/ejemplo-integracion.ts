@@ -180,16 +180,17 @@ export async function POST(request: NextRequest) {
     // ==================================================================
     // PASO 5: OBTENER HISTORIAL DE CONVERSACIÓN
     // ==================================================================
-    const { data: sesion, error: error_sesion } = await supabase
-      .from("sesiones_constructor")
-      .select("mensajes")
-      .eq("id_sesion", id_sesion)
-      .single();
+    // Historial guardado en construccion_progreso.historial_mensajes
+    const { data: progreso_sesion } = await supabase
+      .from("construccion_progreso")
+      .select("historial_mensajes")
+      .eq("id_negocio", id_negocio)
+      .maybeSingle();
     
     let mensajes_anteriores: any[] = [];
     
-    if (sesion && sesion.mensajes) {
-      mensajes_anteriores = sesion.mensajes;
+    if (progreso_sesion && progreso_sesion.historial_mensajes) {
+      mensajes_anteriores = progreso_sesion.historial_mensajes;
     }
     
     // Agregar mensaje actual
@@ -251,12 +252,11 @@ export async function POST(request: NextRequest) {
     // PASO 7: GUARDAR SESIÓN ACTUALIZADA
     // ==================================================================
     await supabase
-      .from("sesiones_constructor")
+      .from("construccion_progreso")
       .upsert({
-        id_sesion,
         id_negocio,
-        mensajes: mensajes_actualizados,
-        ultima_actividad: new Date().toISOString()
+        historial_mensajes: mensajes_actualizados,
+        ultima_actualizacion: new Date().toISOString()
       });
     
     // ==================================================================

@@ -17,137 +17,217 @@ import { crearClienteDesdeEnv } from "@/lib/ia/cliente-ia";
 import { generarPromptOrquestador } from "@/lib/templates/constructor";
 import { createClient } from "@/lib/supabase";
 
+// ---------------------------------------------------------------------------
+// Helpers: parse special markers injected by the AI into its response
+// ---------------------------------------------------------------------------
+
+/** Strip and detect [[AVANZAR_FASE]] */
+function parsearAvanzarFase(texto: string): { texto: string; avanzar: boolean } {
+  const avanzar = /\[\[AVANZAR_FASE\]\]/i.test(texto);
+  return { texto: texto.replace(/\[\[AVANZAR_FASE\]\]/gi, "").trim(), avanzar };
+}
+
+/** Strip and detect [[ACTIVAR_NEGOCIO]] */
+function parsearActivarNegocio(texto: string): { texto: string; activar: boolean } {
+  const activar = /\[\[ACTIVAR_NEGOCIO\]\]/i.test(texto);
+  return { texto: texto.replace(/\[\[ACTIVAR_NEGOCIO\]\]/gi, "").trim(), activar };
+}
+
+/** Strip and extract [[OPCIONES:["a","b"]]] */
+function parsearOpciones(texto: string): { texto: string; opciones: string[] } {
+  const match = texto.match(/\[\[OPCIONES:([\s\S]*?)\]\]/i);
+  let opciones: string[] = [];
+  if (match) {
+    try { opciones = JSON.parse(match[1]); } catch { opciones = []; }
+  }
+  return { texto: texto.replace(/\[\[OPCIONES:[\s\S]*?\]\]/gi, "").trim(), opciones };
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const {
-      id_negocio, // Opcional: ID si ya existe el negocio en construcción
+      id_negocio = null,
       mensaje,
       historial_mensajes = [],
-      negocio_parcial = null, // Información ya recopilada
-      fase_actual = "descubrimiento" // descubrimiento, productos, identidad, operaciones, inventario
+      negocio_parcial = null,
+      fase_actual = "descubrimiento",
+      es_inicio = false,
     } = body;
 
     if (!mensaje) {
-      return NextResponse.json(
-        { error: "Mensaje es requerido" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Mensaje es requerido" }, { status: 400 });
     }
 
     // 1. Generar prompt del Orquestador con contexto
     const prompt_sistema = generarPromptOrquestador({
       negocio_parcial,
       fase_actual,
-      historial: historial_mensajes
+      historial: historial_mensajes,
+      es_inicio,
     });
 
     // 2. Preparar mensajes para la IA
     const mensajes_ia = [
-      { role: "system", content: prompt_sistema },
+      { role: "system" as const, content: prompt_sistema },
       ...historial_mensajes.map((m: any) => ({
-        role: m.role === "user" ? "user" : "assistant",
-        content: m.content
+        role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
+        content: m.content,
       })),
-      { role: "user", content: mensaje }
+      { role: "user" as const, content: mensaje },
     ];
 
     // 3. Generar respuesta del Orquestador
     const cliente_ia = crearClienteDesdeEnv();
-    const respuesta = await cliente_ia.generarRespuesta(mensajes_ia);
+    const respuesta_raw = await cliente_ia.generarRespuesta(mensajes_ia);
 
-    // 4. Si hay ID de negocio, guardar el progreso
-    if (id_negocio) {
+    // 4. Parsear marcadores del modelo antes de devolver al cliente
+    let texto = respuesta_raw.contenido;
+
+    const { texto: texto2, avanzar } = parsearAvanzarFase(texto);
+    texto = texto2;
+
+    const { texto: texto3, activar } = parsearActivarNegocio(texto);
+    texto = texto3;
+
+    const { texto: texto4, opciones } = parsearOpciones(texto);
+    texto = texto4;
+
+    // 5. Extraer información estructurada del mensaje del usuario
+    let informacion_extraida: Record<string, any> | null = null;
+    if (mensaje.length > 20) {
       try {
-        const supabase = createClient();
-        
-        // Guardar snapshot del progreso en una tabla de construcción
-        await supabase
-          .from("construccion_progreso")
-          .upsert({
-            id_negocio,
-            fase_actual,
-            negocio_parcial,
-            ultima_actualizacion: new Date().toISOString(),
-            historial_mensajes: [...historial_mensajes, 
-              { role: "user", content: mensaje },
-              { role: "assistant", content: respuesta.contenido }
-            ]
-          });
-      } catch (error) {
-        console.error("Error guardando progreso:", error);
-        // No bloqueamos la respuesta si falla el guardado
+        informacion_extraida = await extraerInformacionNegocio(mensaje, texto);
+      } catch (e) {
+        console.error("Error extrayendo info:", e);
       }
     }
 
-    // 5. Intentar extraer información estructurada de la respuesta
-    let informacion_extraida = null;
-    try {
-      // Si el usuario proporcionó información clave, extraerla
-      if (mensaje.length > 50) { // Respuestas sustanciales
-        informacion_extraida = await extraerInformacionNegocio(
-          mensaje,
-          respuesta.contenido
-        );
+    // 6. Activar negocio en BD si el orquestador lo indica
+    let negocio_activado = false;
+    if (activar && id_negocio) {
+      try {
+        const supabase = createClient();
+        const info = { ...negocio_parcial, ...informacion_extraida };
+
+        // Actualizar estado del negocio
+        await supabase
+          .from("negocios")
+          .update({
+            nombre: info.nombre_negocio ?? "Mi Negocio",
+            estado: "activo",
+            fecha_activacion: new Date().toISOString(),
+            url_tienda: `/tienda/${id_negocio}`,
+          })
+          .eq("id_negocio", id_negocio);
+
+        // Guardar identidad de marca si hay datos
+        if (info.nombre_negocio) {
+          await supabase.from("marca").upsert({
+            id_negocio,
+            nombre_negocio: info.nombre_negocio ?? "Mi Negocio",
+            slogan: info.slogan ?? null,
+            color_primario: info.color_primario ?? "#4f46e5",
+            estilo_visual: info.estilo_visual ?? "moderno",
+            tono_comunicacion: info.tono_comunicacion ?? "amigable",
+          });
+        }
+
+        // Guardar tema
+        if (info.tipo_negocio) {
+          await supabase.from("tema").upsert({
+            id_negocio,
+            tipo_negocio: info.tipo_negocio ?? "otro",
+            categoria_principal: info.categorias_mencionadas?.[0] ?? "General",
+            tipo_producto: info.tipo_producto ?? "fisico",
+            alcance: info.alcance ?? "local",
+          });
+        }
+
+        negocio_activado = true;
+      } catch (error) {
+        console.error("Error activando negocio:", error);
       }
-    } catch (error) {
-      console.error("Error extrayendo información:", error);
+    }
+
+    // 7. Guardar progreso en BD (si hay id_negocio)
+    if (id_negocio && !activar) {
+      try {
+        const supabase = createClient();
+        await supabase.from("construccion_progreso").upsert({
+          id_negocio,
+          fase_actual,
+          negocio_parcial: { ...negocio_parcial, ...informacion_extraida },
+          ultima_actualizacion: new Date().toISOString(),
+          historial_mensajes: [
+            ...historial_mensajes,
+            { role: "user", content: mensaje },
+            { role: "assistant", content: texto },
+          ],
+        });
+      } catch (error) {
+        console.error("Error guardando progreso:", error);
+      }
     }
 
     return NextResponse.json({
-      respuesta: respuesta.contenido,
-      modelo_usado: respuesta.modelo_usado,
-      provider: respuesta.provider,
+      respuesta: texto,
+      modelo_usado: respuesta_raw.modelo_usado,
+      provider: respuesta_raw.provider,
       fase_actual,
+      avanzar_fase: avanzar,
+      negocio_activado,
+      opciones_rapidas: opciones.length > 0
+        ? opciones.map((o) => ({ label: o, valor: o }))
+        : null,
       informacion_extraida,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
   } catch (error: any) {
     console.error("Error en orquestador:", error);
-    return NextResponse.json(
-      { error: error.message || "Error procesando mensaje" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || "Error procesando mensaje" }, { status: 500 });
   }
 }
 
 /**
  * Extraer información estructurada del mensaje del usuario
- * usando IA
  */
 async function extraerInformacionNegocio(
   mensaje_usuario: string,
   respuesta_orquestador: string
-): Promise<any> {
+): Promise<Record<string, any> | null> {
   const cliente_ia = crearClienteDesdeEnv();
-  
-  const prompt = `Analiza este intercambio entre el Orquestador y el usuario para extraer información estructurada sobre el negocio que están construyendo.
+
+  const prompt = `Analiza este intercambio y extrae información estructurada del negocio que están configurando.
 
 USUARIO: ${mensaje_usuario}
 ORQUESTADOR: ${respuesta_orquestador}
 
-Extrae en JSON:
-{
-  "tipo_negocio": "restaurante|tienda_ropa|tecnologia|gimnasio|educacion|servicios|otro",
-  "nombre_negocio": "...",
-  "productos_mencionados": ["..."],
-  "precios_mencionados": [89, 120],
-  "categorias_mencionadas": ["..."],
-  "modelo_negocio": "local|online|hibrido",
-  "referencias_visuales": ["URL1", "URL2"],
-  "campos_inventario_requeridos": ["variantes", "stock", "..."]
-}
+Devuelve SOLO un objeto JSON con los campos que se mencionaron explícitamente. Si un campo no fue mencionado, no lo incluyas.
 
-Solo extrae lo que fue explícitamente mencionado. Si no hay información, usa null o [].`;
+Campos posibles:
+{
+  "tipo_negocio": "restaurante|tienda_ropa|tecnologia|gimnasio|educacion|servicios|salud|belleza|hogar|otro",
+  "nombre_negocio": "...",
+  "slogan": "...",
+  "color_primario": "#rrggbb",
+  "estilo_visual": "minimalista|elegante|juvenil|profesional|moderno",
+  "tono_comunicacion": "formal|amigable|casual|profesional",
+  "tipo_producto": "fisico|digital|mixto",
+  "alcance": "local|nacional|internacional",
+  "categorias_mencionadas": ["..."],
+  "productos_mencionados": [{"nombre":"...","precio":0}],
+  "metodos_pago": ["tarjeta","transferencia","efectivo","otro"],
+  "nombre_agente_vendedor": "..."
+}`;
 
   try {
-    const info = await cliente_ia.extraerJSON<any>(
+    return await cliente_ia.extraerJSON<Record<string, any>>(
       prompt,
       "Extrae la información en formato JSON."
     );
-    return info;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
