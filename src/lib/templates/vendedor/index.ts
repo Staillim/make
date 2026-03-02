@@ -169,6 +169,40 @@ export function obtenerPromptConCatalogo(
   return inyectarCatalogo(template.prompt, productos);
 }
 
+/**
+ * Inyecta el nombre personalizado del agente en el prompt
+ * @param prompt - Prompt template con placeholder {{NOMBRE_AGENTE}}
+ * @param nombrePersonalizado - Nombre del agente elegido por el dueño
+ * @param industria - Tipo de industria (para nombre default)
+ * @returns Prompt con nombre inyectado
+ */
+export function inyectarNombreAgente(
+  prompt: string,
+  nombrePersonalizado: string | null | undefined,
+  industria: string
+): string {
+  // Si hay nombre personalizado, úsalo
+  if (nombrePersonalizado && nombrePersonalizado.trim()) {
+    return prompt.replace(/\{\{NOMBRE_AGENTE\}\}/g, nombrePersonalizado.trim());
+  }
+  
+  // Si no, usa el nombre default según industria
+  const nombresDefault: Record<string, string> = {
+    restaurante: "María",
+    tienda_ropa: "Sofía",
+    tecnologia: "Alex",
+    gimnasio: "Coach Mike",
+    educacion: "Prof. Ana",
+    servicios: "Luna",
+    otro: "Asistente"
+  };
+  
+  const industriaNormalizada = industria.toLowerCase().replace(/\s+/g, "_");
+  const nombreDefault = nombresDefault[industriaNormalizada] || nombresDefault.otro;
+  
+  return prompt.replace(/\{\{NOMBRE_AGENTE\}\}/g, nombreDefault);
+}
+
 // ============================================================================
 // AGENTE UNIVERSAL - Nueva funcionalidad adaptable
 // ============================================================================

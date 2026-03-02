@@ -132,6 +132,7 @@ export async function POST(request: Request) {
             color_primario: info.color_primario ?? "#4f46e5",
             estilo_visual: info.estilo_visual ?? "moderno",
             tono_comunicacion: info.tono_comunicacion ?? "amigable",
+            nombre_agente_vendedor: info.nombre_agente_vendedor ?? null,
           });
         }
 

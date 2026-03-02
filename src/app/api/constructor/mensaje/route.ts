@@ -38,10 +38,10 @@ export async function POST(request: Request) {
 
     const supabase = createClient();
     
-    // 1. Obtener información del negocio
+    // 1. Obtener información del negocio (incluyendo marca con nombre_agente_vendedor)
     const { data: negocio, error: errorNegocio } = await supabase
       .from("negocios")
-      .select("*, productos(*)")
+      .select("*, productos(*), marca(*), tema(*)")
       .eq("id_negocio", id_negocio)
       .single();
     
@@ -82,11 +82,19 @@ export async function POST(request: Request) {
     let prompt_sistema = "";
     
     try {
+      const { inyectarNombreAgente } = await import("@/lib/templates/vendedor");
       const template = obtenerTemplateVendedor(negocio.tipo_negocio || "otro");
+      
+      // Inyectar nombre personalizado del agente (o usar default)
+      let prompt_con_nombre = inyectarNombreAgente(
+        template.prompt,
+        negocio.marca?.nombre_agente_vendedor,
+        negocio.tipo_negocio || "otro"
+      );
       
       // Inyectar catálogo de productos
       let prompt_con_catalogo = inyectarCatalogo(
-        template.prompt,
+        prompt_con_nombre,
         negocio.productos || []
       );
       
