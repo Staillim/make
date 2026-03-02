@@ -44,8 +44,8 @@ export async function POST(request: Request) {
     }
     
     // 2. Obtener o crear perfil del cliente (si hay identificación)
-    let perfil_cliente = null;
-    let resumen_perfil = "";
+    let perfil_cliente: any = null;
+    let resumen_perfil: string = "";
     
     if (email_cliente || telefono_cliente) {
       try {
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
           telefono: telefono_cliente
         });
         
-        resumen_perfil = resumen;
+        resumen_perfil = resumen || "Cliente nuevo, primera interacción.";
       } catch (error) {
         console.error("Error obteniendo perfil:", error);
         // Continuar sin perfil

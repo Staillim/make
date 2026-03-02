@@ -98,12 +98,12 @@ function normalizarInformacionExtraida(info: any): InformacionExtraida {
       categorias: Array.isArray(info.preferencias_detectadas?.categorias)
         ? info.preferencias_detectadas.categorias
         : [],
-      rango_precio: info.preferencias_detectadas?.rango_precio || null
+      rango_precio: info.preferencias_detectadas?.rango_precio
     },
     contexto_detectado: {
-      ocasion: info.contexto_detectado?.ocasion || null,
-      para_quien: info.contexto_detectado?.para_quien || null,
-      urgencia: info.contexto_detectado?.urgencia || null,
+      ocasion: info.contexto_detectado?.ocasion,
+      para_quien: info.contexto_detectado?.para_quien,
+      urgencia: info.contexto_detectado?.urgencia,
       objeciones: Array.isArray(info.contexto_detectado?.objeciones)
         ? info.contexto_detectado.objeciones
         : []
@@ -115,11 +115,10 @@ function normalizarInformacionExtraida(info: any): InformacionExtraida {
       ? info.intencion
       : "consulta",
     datos_contacto: {
-      nombre: info.datos_contacto?.nombre || null,
-      email: info.datos_contacto?.email || null,
-      telefono: info.datos_contacto?.telefono || null
-    },
-    notas: info.notas || null
+      nombre: info.datos_contacto?.nombre,
+      email: info.datos_contacto?.email,
+      telefono: info.datos_contacto?.telefono
+    }
   };
 }
 
@@ -169,22 +168,21 @@ function extraerInformacionBasica(
     preferencias_detectadas: {
       productos: [],
       categorias: [],
-      rango_precio: null
+      rango_precio: undefined
     },
     contexto_detectado: {
-      ocasion: null,
-      para_quien: null,
-      urgencia: null,
+      ocasion: undefined,
+      para_quien: undefined,
+      urgencia: undefined,
       objeciones: []
     },
     sentimiento,
     intencion,
     datos_contacto: {
-      nombre: null,
-      email: email_match ? email_match[0] : null,
-      telefono: telefono_match ? telefono_match[0] : null
-    },
-    notas: "Extracción básica sin IA (fallback)"
+      nombre: undefined,
+      email: email_match ? email_match[0] : undefined,
+      telefono: telefono_match ? telefono_match[0] : undefined
+    }
   };
 }
 
@@ -266,21 +264,21 @@ export function combinarInformacionExtraida(
   // Combinar productos (únicos)
   const productos_set = new Set<string>();
   extracciones.forEach(e => {
-    e.preferencias_detectadas.productos.forEach(p => productos_set.add(p));
+    e.preferencias_detectadas?.productos?.forEach(p => productos_set.add(p));
   });
   
   // Combinar categorías (únicas)
   const categorias_set = new Set<string>();
   extracciones.forEach(e => {
-    e.preferencias_detectadas.categorias.forEach(c => categorias_set.add(c));
+    e.preferencias_detectadas?.categorias?.forEach(c => categorias_set.add(c));
   });
   
   // Calcular rango de precio combinado
   const rangos = extracciones
-    .map(e => e.preferencias_detectadas.rango_precio)
-    .filter(r => r !== null) as { min: number; max: number }[];
+    .map(e => e.preferencias_detectadas?.rango_precio)
+    .filter(r => r !== undefined && r !== null) as { min: number; max: number }[];
   
-  let rango_precio: { min: number; max: number } | null = null;
+  let rango_precio: { min: number; max: number } | undefined = undefined;
   if (rangos.length > 0) {
     rango_precio = {
       min: Math.min(...rangos.map(r => r.min)),
@@ -291,14 +289,14 @@ export function combinarInformacionExtraida(
   // Combinar objeciones
   const objeciones_set = new Set<string>();
   extracciones.forEach(e => {
-    e.contexto_detectado.objeciones.forEach(o => objeciones_set.add(o));
+    e.contexto_detectado?.objeciones?.forEach(o => objeciones_set.add(o));
   });
   
   // Usar la última extracción para valores únicos
   const ultima = extracciones[extracciones.length - 1];
   
   // Calcular sentimiento promedio
-  const sentiment_scores = extracciones.map(e => calcularSentimentScore(e.sentimiento));
+  const sentiment_scores = extracciones.map(e => calcularSentimentScore(e.sentimiento || "neutral"));
   const avg_score = sentiment_scores.reduce((a, b) => a + b, 0) / sentiment_scores.length;
   
   let sentimiento: "positivo" | "neutral" | "negativo" = "neutral";
@@ -312,15 +310,14 @@ export function combinarInformacionExtraida(
       rango_precio
     },
     contexto_detectado: {
-      ocasion: ultima.contexto_detectado.ocasion,
-      para_quien: ultima.contexto_detectado.para_quien,
-      urgencia: ultima.contexto_detectado.urgencia,
+      ocasion: ultima.contexto_detectado?.ocasion,
+      para_quien: ultima.contexto_detectado?.para_quien,
+      urgencia: ultima.contexto_detectado?.urgencia,
       objeciones: Array.from(objeciones_set)
     },
     sentimiento,
     intencion: ultima.intencion,
-    datos_contacto: ultima.datos_contacto,
-    notas: `Combinado de ${extracciones.length} conversaciones`
+    datos_contacto: ultima.datos_contacto
   };
 }
 
