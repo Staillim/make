@@ -15,6 +15,7 @@
   - [ Características Principales](#-características-principales)
   - [ Arquitectura Multi-Tenant](#-arquitectura-multi-tenant)
   - [ Documentación Completa](#-documentación-completa)
+  - [🔍 Estado del Proyecto (STATUS.md)](#-estado-del-proyecto)
   - [ Stack Tecnológico](#-stack-tecnológico)
   - [ Configuración y Deploy](#-configuración-y-deploy)
   - [ Estructura del Proyecto](#-estructura-del-proyecto)
@@ -23,7 +24,6 @@
   - [ Arquitectura de Software](#-arquitectura-de-software)
   - [ API Reference](#-api-reference)
   - [ Autenticación y Seguridad](#-autenticación-y-seguridad)
-  - [ Estado del Proyecto](#-estado-del-proyecto)
   - [ Roadmap (14 días)](#-roadmap-14-días)
   - [ Testing](#-testing)
   - [ Contribuir](#-contribuir)
@@ -95,27 +95,40 @@ Usuario 2
 
 ##  Documentación Completa
 
+### 📁 Estructura Organizada
+
+La documentación está organizada en `docs/` con subcarpetas temáticas:
+
+#### 📌 **CORE** - Documentos Esenciales
 | Documento | Descripción | Estado |
 |-----------|-------------|--------|
-| [README.md](README.md) | Este archivo - Guía principal |  Actualizado |
-| [BLUEPRINT.md](BLUEPRINT.md) | Single source of truth técnico |  Actualizado |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitectura de software detallada |  En progreso |
-| [API_REFERENCE.md](API_REFERENCE.md) | Referencia completa de APIs |  En progreso |
-| [PLAN.md](PLAN.md) | Plan completo del proyecto (18 secciones) |  Desactualizado |
-| [PROGRESO_DESARROLLO.md](PROGRESO_DESARROLLO.md) | Sprint tracking |  Desactualizado |
-| [ESTADO_ACTUAL.md](ESTADO_ACTUAL.md) | Estado del código |  Desactualizado |
-| [ARQUITECTURA_MULTI_NEGOCIO.md](ARQUITECTURA_MULTI_NEGOCIO.md) | Arquitectura multi-tenant |  Vigente |
-| [AGENTES_UNIVERSALES.md](AGENTES_UNIVERSALES.md) | Sistema de agentes universal |  Vigente |
-| [ANALISIS_5PALOS_Y_VISION.md](ANALISIS_5PALOS_Y_VISION.md) | Inspiración análisis 5palos |  Referencia |
-| [CRM.md](CRM.md) | Sistema CRM detallado (600+ líneas) |  Diseño completo |
-| [CRM_ANALYTICS.md](CRM_ANALYTICS.md) | Analytics avanzado (1500+ líneas) |  Diseño completo |
-| [MIS_NEGOCIOS_COMPLETADO.md](MIS_NEGOCIOS_COMPLETADO.md) | Funcionalidades "Mis Negocios" |  Completado |
-| [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) | Setup Google OAuth |  Guía |
-| [RLS_FIX_INSTRUCTIONS.md](RLS_FIX_INSTRUCTIONS.md) | Fix RLS policies |  Guía |
-| [RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md) | Visión ejecutiva |  Desactualizado |
-| [VISION_ESTRATEGICA.md](VISION_ESTRATEGICA.md) | Estrategia de producto |  Desactualizado |
+| [**STATUS.md**](docs/CORE/STATUS.md) | 🔍 **Análisis crítico completo** - 3,770 LoC verificadas, scoring 8.0/10, roadmap MVP 4 semanas | 🔥 **CRÍTICO** |
+| [BLUEPRINT.md](docs/CORE/BLUEPRINT.md) | Single source of truth técnico | ✅ Actualizado |
+| [CONTRIBUTING.md](docs/CORE/CONTRIBUTING.md) | Guía de contribución (400+ líneas, git workflow, standards) | ✅ Actualizado |
 
-**Documentación técnica interna:**
+#### 🏗️ **ARCHITECTURE** - Arquitectura Técnica
+| Documento | Descripción | Estado |
+|-----------|-------------|--------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE/ARCHITECTURE.md) | Arquitectura de software detallada (800+ líneas, capas, data flows, RLS) | ✅ Actualizado |
+| [ARQUITECTURA_MULTI_NEGOCIO.md](docs/ARCHITECTURE/ARQUITECTURA_MULTI_NEGOCIO.md) | Arquitectura multi-tenant (sistema de negocio único por usuario) | ✅ Vigente |
+| [API_REFERENCE.md](docs/ARCHITECTURE/API_REFERENCE.md) | Referencia completa de APIs (600+ líneas, endpoints, ejemplos) | ✅ Actualizado |
+
+#### ⚙️ **FEATURES** - Funcionalidades Específicas
+| Documento | Descripción | Estado |
+|-----------|-------------|--------|
+| [AGENTES_UNIVERSALES.md](docs/FEATURES/AGENTES_UNIVERSALES.md) | Sistema de agentes universal (Orquestador, Vendedor, Admin) | ✅ Vigente |
+| [CRM.md](docs/FEATURES/CRM.md) | Sistema CRM detallado (600+ líneas, perfiles, scoring) | 🎨 Diseño (30% implementado) |
+| [CRM_ANALYTICS.md](docs/FEATURES/CRM_ANALYTICS.md) | Analytics avanzado (1,500+ líneas, ROI, CLV, campanhas) | 🎨 Diseño (10% implementado) |
+| [MIS_NEGOCIOS_COMPLETADO.md](docs/FEATURES/MIS_NEGOCIOS_COMPLETADO.md) | Funcionalidades "Mis Negocios" | ✅ Completado |
+
+#### 📖 **GUIDES** - Guías y Referencias
+| Documento | Descripción | Estado |
+|-----------|-------------|--------|
+| [GOOGLE_OAUTH_SETUP.md](docs/GUIDES/GOOGLE_OAUTH_SETUP.md) | Setup Google OAuth (paso a paso) | 📖 Guía |
+| [RLS_FIX_INSTRUCTIONS.md](docs/GUIDES/RLS_FIX_INSTRUCTIONS.md) | Fix RLS policies (troubleshooting) | 📖 Guía |
+| [PLAN.md](docs/GUIDES/PLAN.md) | Roadmap original del proyecto (18 secciones) | 📚 Referencia histórica |
+
+#### 💻 **Documentación Técnica Interna**
 - [src/lib/templates/README.md](src/lib/templates/README.md) - Biblioteca de prompts de agentes
 - [src/lib/templates/vendedor/CATALOGO.md](src/lib/templates/vendedor/CATALOGO.md) - Sistema de catálogo
 - [src/lib/templates/admin/README.md](src/lib/templates/admin/README.md) - Agentes admin
