@@ -305,6 +305,194 @@ Con esta implementación, los agentes vendedores:
 
 ---
 
+## 🤖 Agente Universal vs Agentes Especializados
+
+### Dos Enfoques Disponibles
+
+**1️⃣ Agentes Especializados** (María, Alex, Sofía, etc.)
+- ✅ Personalidad rica y memorable
+- ✅ Vocabulario ultra-especializado
+- ✅ Experiencia de usuario óptima
+- ❌ Requiere crear archivo por industria
+
+**2️⃣ Agente Universal** (Nuevo! 🆕)
+- ✅ Se adapta a CUALQUIER industria dinámicamente
+- ✅ Escalable a infinitas industrias sin código nuevo
+- ✅ Personalización via metadata
+- ❌ Personalidad ligeramente menos distintiva
+
+### Cuándo Usar Cada Uno
+
+#### Usa Especializado 👥
+```typescript
+const prompt = obtenerPromptConCatalogo("restaurante", productos);
+// → María (mesera experta) con personalidad definida
+```
+
+**Mejor para:**
+- 5-10 industrias principales bien definidas
+- Máxima experiencia de usuario
+- Personalidad de marca fuerte
+
+#### Usa Universal 🌐
+```typescript
+const prompt = obtenerAgenteUniversal({
+  industria: "floristeria",
+  nombreNegocio: "Flores del Campo",
+  tono: "elegante",
+  descripcionNegocio: "Flores frescas para toda ocasión"
+}, productos);
+// → Agente adaptado dinámicamente a floristería
+```
+
+**Mejor para:**
+- 20+ industrias diferentes
+- Industrias no estándar (joyería, mascotas, etc.)
+- Experimentación rápida sin crear archivos
+
+#### Usa Estrategia Automática 🎯 (Recomendado)
+```typescript
+const prompt = obtenerPromptSegunEstrategia("automatico", metadata, productos);
+// → Si existe especializado (restaurante, tech, ropa, gym, educación, servicios) → lo usa
+// → Si NO existe (floristería, joyería, etc.) → usa universal automáticamente
+```
+
+**Mejor para:**
+- Obtener lo mejor de ambos mundos
+- Sistema que crece orgánicamente
+- No preocuparse por qué estrategia usar
+
+### Comparación A/B Testing
+
+Puedes probar ambos enfoques con el mismo negocio:
+
+```typescript
+import { obtenerAmbosPromptsParaComparar } from "@/lib/templates/vendedor";
+
+const { especializado, universal } = obtenerAmbosPromptsParaComparar(
+  { industria: "restaurante", nombreNegocio: "Burger King" },
+  productos
+);
+
+// Asignar aleatoriamente a usuarios
+const promptFinal = Math.random() < 0.5 ? especializado : universal;
+
+// Trackear métricas para ver cuál convierte mejor
+analytics.track('agent_type', { 
+  type: promptFinal === especializado ? 'especializado' : 'universal' 
+});
+```
+
+### Personalización del Agente Universal
+
+El agente universal acepta metadata completa:
+
+```typescript
+interface MetadataNegocio {
+  industria: string;                    // Tipo de negocio
+  nombreNegocio?: string;               // Nombre comercial
+  descripcionNegocio?: string;          // Breve descripción
+  tono?: "casual" | "profesional" | "juvenil" | "elegante";  // Tono de comunicación
+  objetivoVenta?: string;               // Qué quieres lograr
+  valorAgregado?: string;               // Tu diferenciador
+}
+```
+
+**Ejemplo: Mismo negocio, diferentes tonos**
+
+```typescript
+// Tono Casual (amigable)
+obtenerAgenteUniversal({
+  industria: "gimnasio",
+  nombreNegocio: "FitZone",
+  tono: "casual"
+}, productos);
+// → "¡Ey! ¿Qué onda? ¿Listo para ponerte en forma? 💪😊"
+
+// Tono Profesional (formal)
+obtenerAgenteUniversal({
+  industria: "gimnasio",
+  nombreNegocio: "Elite Fitness Club",
+  tono: "profesional"
+}, productos);
+// → "Buenos días. ¿En qué puedo asistirle con sus objetivos fitness?"
+
+// Tono Juvenil (energético)
+obtenerAgenteUniversal({
+  industria: "gimnasio",
+  nombreNegocio: "PowerGym",
+  tono: "juvenil"
+}, productos);
+// → "¡Woww! ¿Vienes a darlo todo? Esto va a estar brutal 🔥💯"
+```
+
+### Vocabulario Adaptable
+
+El agente universal ajusta su vocabulario según la industria:
+
+| Industria | Verbo Vender | Cliente | Producto | Emojis |
+|-----------|--------------|---------|----------|--------|
+| Restaurante | recomendar | cliente | platillo | 🍔🍕🍝😋 |
+| Ropa | asesorar | amor/cliente | prenda | 👔👗✨💕 |
+| Tecnología | asesorar | amigo | dispositivo | 💻📱⚡🔋 |
+| Gimnasio | motivar | hermano/campeón | plan | 💪🏋️🔥💯 |
+| Educación | orientar | estudiante | curso | 📚🎓💡✨ |
+| Servicios | consultar | cliente | servicio | 💼📊🎯✅ |
+
+### Ejemplo Completo - API Integration
+
+```typescript
+// En tu API route: /api/constructor/mensaje
+import { 
+  obtenerPromptSegunEstrategia,
+  MetadataNegocio,
+  Producto 
+} from "@/lib/templates/vendedor";
+
+export async function POST(req: Request) {
+  const { id_negocio, mensaje } = await req.json();
+  
+  // 1. Obtener datos del negocio
+  const negocio = await db.negocios.findUnique({ where: { id: id_negocio } });
+  const productos = await db.productos.findMany({ where: { id_negocio } });
+  
+  // 2. Preparar metadata
+  const metadata: MetadataNegocio = {
+    industria: negocio.industria,
+    nombreNegocio: negocio.nombre,
+    descripcionNegocio: negocio.descripcion,
+    tono: negocio.tono_comunicacion || "casual",
+  };
+  
+  // 3. Obtener prompt (automático: usa especializado si existe, sino universal)
+  const systemPrompt = obtenerPromptSegunEstrategia(
+    "automatico",
+    metadata,
+    productos
+  );
+  
+  // 4. Llamar a OpenAI
+  const response = await openai.chat.completions.create({
+    model: "gpt-4",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: mensaje }
+    ]
+  });
+  
+  return Response.json({ respuesta: response.choices[0].message.content });
+}
+```
+
+### Ver Ejemplos Completos
+
+Revisa los archivos de ejemplo:
+- [ejemplo-catalogo.ts](./ejemplo-catalogo.ts) - Ejemplos de inyección de catálogo
+- [ejemplo-comparativo.ts](./ejemplo-comparativo.ts) - Comparación especializado vs universal
+- [agente-universal.ts](./agente-universal.ts) - Implementación completa
+
+---
+
 ## 📞 Soporte
 
 Si tienes dudas sobre cómo integrar el catálogo en tu flujo, revisa:

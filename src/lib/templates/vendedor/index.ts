@@ -10,6 +10,10 @@ import tecnologiaTemplate from "./tecnologia";
 import gimnasioTemplate from "./gimnasio";
 import educacionTemplate from "./educacion";
 import serviciosTemplate from "./servicios";
+import agenteUniversalTemplate, { 
+  generarAgenteUniversal, 
+  MetadataNegocio 
+} from "./agente-universal";
 
 /**
  * Tipo de industria soportado
@@ -165,6 +169,81 @@ export function obtenerPromptConCatalogo(
   return inyectarCatalogo(template.prompt, productos);
 }
 
+// ============================================================================
+// AGENTE UNIVERSAL - Nueva funcionalidad adaptable
+// ============================================================================
+
+/**
+ * Re-exportar tipos del agente universal
+ */
+export type { MetadataNegocio };
+
+/**
+ * Genera un agente vendedor universal que se adapta dinámicamente
+ * @param metadata - Información del negocio para personalizar el agente
+ * @param productos - Array de productos del negocio
+ * @returns Prompt completamente personalizado y listo para usar
+ */
+export function obtenerAgenteUniversal(
+  metadata: MetadataNegocio,
+  productos: Producto[]
+): string {
+  const promptBase = generarAgenteUniversal(metadata);
+  return inyectarCatalogo(promptBase, productos);
+}
+
+/**
+ * Estrategia para elegir tipo de agente
+ */
+export type EstrategiaAgente = "especializado" | "universal" | "automatico";
+
+/**
+ * Obtiene el prompt del agente según la estrategia elegida
+ * 
+ * @param estrategia - Tipo de agente a usar:
+ *   - "especializado": Usa agentes como María, Alex, Sofía (más personalidad)
+ *   - "universal": Usa el agente adaptable (más flexible)
+ *   - "automatico": Usa especializado si existe, sino universal
+ * @param metadata - Información del negocio
+ * @param productos - Catálogo de productos
+ * @returns Prompt listo para usar con OpenAI
+ */
+export function obtenerPromptSegunEstrategia(
+  estrategia: EstrategiaAgente,
+  metadata: MetadataNegocio,
+  productos: Producto[]
+): string {
+  switch (estrategia) {
+    case "especializado":
+      return obtenerPromptConCatalogo(metadata.industria, productos);
+    
+    case "universal":
+      return obtenerAgenteUniversal(metadata, productos);
+    
+    case "automatico":
+    default:
+      // Si existe especializado, usarlo; sino, universal
+      if (tieneTemplateEspecifico(metadata.industria)) {
+        return obtenerPromptConCatalogo(metadata.industria, productos);
+      } else {
+        return obtenerAgenteUniversal(metadata, productos);
+      }
+  }
+}
+
+/**
+ * Helper para comparar ambos enfoques (útil para A/B testing)
+ */
+export function obtenerAmbosPromptsParaComparar(
+  metadata: MetadataNegocio,
+  productos: Producto[]
+): { especializado: string; universal: string } {
+  return {
+    especializado: obtenerPromptConCatalogo(metadata.industria, productos),
+    universal: obtenerAgenteUniversal(metadata, productos)
+  };
+}
+
 // Exportar templates individuales también
 export {
   baseTemplate,
@@ -174,6 +253,8 @@ export {
   gimnasioTemplate,
   educacionTemplate,
   serviciosTemplate,
+  agenteUniversalTemplate,
+  generarAgenteUniversal,
 };
 
 export default {
@@ -183,4 +264,9 @@ export default {
   tieneTemplateEspecifico,
   inyectarCatalogo,
   obtenerPromptConCatalogo,
+  // Nuevas funciones para agente universal
+  obtenerAgenteUniversal,
+  obtenerPromptSegunEstrategia,
+  obtenerAmbosPromptsParaComparar,
+  generarAgenteUniversal,
 };
