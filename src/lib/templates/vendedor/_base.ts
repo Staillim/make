@@ -3,7 +3,7 @@
  * Usado como fallback cuando no hay plantilla específica para la industria
  */
 
-export const prompt = `Eres un asistente de ventas profesional y amable.
+export const prompt = `Eres el mejor asistente de ventas profesional y amable el mejor en lo que haces con mucha experiencia.
 
 ## IMPORTANTE: Productos/Servicios que Ofreces
 {{PRODUCTOS_CATALOGO}}

@@ -89,7 +89,7 @@ Usuario 2
 -  **Configuración independiente** almacenada en BD
 -  **Base de datos lógicamente dedicada** por negocio
 
- Ver: [ARQUITECTURA_MULTI_NEGOCIO.md](ARQUITECTURA_MULTI_NEGOCIO.md)
+ Ver: [ARQUITECTURA_MULTI_NEGOCIO.md](docs/ARCHITECTURE/ARQUITECTURA_MULTI_NEGOCIO.md)
 
 ---
 
@@ -128,7 +128,12 @@ La documentación está organizada en `docs/` con subcarpetas temáticas:
 | [RLS_FIX_INSTRUCTIONS.md](docs/GUIDES/RLS_FIX_INSTRUCTIONS.md) | Fix RLS policies (troubleshooting) | 📖 Guía |
 | [PLAN.md](docs/GUIDES/PLAN.md) | Roadmap original del proyecto (18 secciones) | 📚 Referencia histórica |
 
-#### 💻 **Documentación Técnica Interna**
+#### � **CHANGELOG & CONTRIBUTORS**
+| Documento | Descripción | Estado |
+|-----------|-------------|--------|
+| [**CHANGELOG.md**](docs/CORE/CHANGELOG.md) | 📋 **Historia completa del proyecto** - 20+ commits, 19,667 líneas añadidas, sistema de plantillas, timeline Jose Dev | 🔥 **ACTUALIZADO** |
+
+#### �💻 **Documentación Técnica Interna**
 - [src/lib/templates/README.md](src/lib/templates/README.md) - Biblioteca de prompts de agentes
 - [src/lib/templates/vendedor/CATALOGO.md](src/lib/templates/vendedor/CATALOGO.md) - Sistema de catálogo
 - [src/lib/templates/admin/README.md](src/lib/templates/admin/README.md) - Agentes admin
@@ -902,11 +907,13 @@ CREATE POLICY "productos_public_read"
   ));
 ```
 
- Ver: [RLS_FIX_INSTRUCTIONS.md](RLS_FIX_INSTRUCTIONS.md)
+ Ver: [RLS_FIX_INSTRUCTIONS.md](docs/GUIDES/RLS_FIX_INSTRUCTIONS.md)
 
 ---
 
 ##  Estado del Proyecto
+
+> 📊 **Análisis Completo:** Ver [STATUS.md](docs/CORE/STATUS.md) para análisis crítico exhaustivo (8.0/10 scoring)
 
 ###  Completado (Funcional)
 
@@ -950,7 +957,7 @@ CREATE POLICY "productos_public_read"
 | 12 | Google OAuth + UI polish |  |
 | 14 | Deploy Netlify  demo live |  |
 
- Ver: [BLUEPRINT.md](BLUEPRINT.md) para desglose detallado.
+ Ver: [BLUEPRINT.md](docs/CORE/BLUEPRINT.md) para desglose detallado.
 
 ---
 
@@ -973,13 +980,15 @@ npm run test
 
 ##  Contribuir
 
+Nos encantaría recibir tus contribuciones para mejorar Maket AI. Por favor:
+
 1. Fork el proyecto
 2. Crea una rama: `git checkout -b feature/nueva-funcionalidad`
 3. Commit: `git commit -m 'feat: agregar nueva funcionalidad'`
 4. Push: `git push origin feature/nueva-funcionalidad`
 5. Abre un Pull Request
 
- Ver: [CONTRIBUTING.md](CONTRIBUTING.md) (próximamente)
+ **Guía completa:** [CONTRIBUTING.md](docs/CORE/CONTRIBUTING.md) - Git workflow, conventional commits, standards, PR checklist
 
 ---
 
@@ -989,6 +998,26 @@ MIT License - ver [LICENSE](LICENSE) para detalles.
 
 ---
 
+##  Contributors
+
+### Jose Frangel Padilla Camacho (@JFrangel)
+**Contribución:** ~19,667 líneas añadidas en sprint de 3 horas (Marzo 1, 2026)
+
+**Major contributions:**
+- 🤖 Sistema de Plantillas Completo (13 agentes: 6 vendedor + 7 admin)
+- 🧠 Agente Universal Adaptable (funciona para CUALQUIER industria)
+- 📦 Sistema de Catálogo con Inyección Dinámica
+- 💾 Sistema de Notas Persistentes (memoria de agentes)
+- 🌍 Soporte Multilanguage (13 idiomas)
+- 🔗 Cliente IA Multi-Provider (Gemini + OpenAI fallback)
+- 🚀 API Routes (Orquestador, Administrador, Notas)
+- 🐛 Fixes Críticos (TS module conflict, database bug)
+- 📚 Documentación Masiva (5,000+ líneas en 5 archivos)
+
+📋 **Ver changelog completo:** [CHANGELOG.md](docs/CORE/CHANGELOG.md)
+
+---
+
 **Desarrollado con  por el equipo de Maket AI**
 
-> Última actualización: Marzo 2026 | Commit: `25a2dea`
+> Última actualización: Marzo 1, 2026 | Branch: `jose-develop` | Commit: `d0682c4`

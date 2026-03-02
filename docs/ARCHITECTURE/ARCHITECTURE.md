@@ -312,6 +312,475 @@ if (avanzar) {
 return { respuesta: texto, avanzar_fase: avanzar };
 ```
 
+### 4.3. Arquitectura del Sistema de Plantillas
+
+#### 4.3.1. Evolución del Sistema (6 Fases)
+
+El sistema de plantillas evolucionó a través de 6 fases de desarrollo documentadas en [CHANGELOG.md](../CORE/CHANGELOG.md):
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ FASE 1: Agentes Especializados (Commit a1b2728)                 │
+│  - 6 agentes vendedor: María, Sofía, Alex, Mike, Ana, Luna     │
+│  - Template genérico fallback: _base.ts                        │
+│  - 1,007 líneas de prompts especializados                      │
+│  - Helper: obtenerTemplateVendedor(industria)                  │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ FASE 2: Agentes Administradores (Commit c37d0d7)                │
+│  - 7 agentes admin (Max) especializados por industria          │
+│  - 48 KPIs únicos monitoreados                                 │
+│  - Sistema de alertas (3 niveles: crítico/importante/atención) │
+│  - 4,227 líneas de prompts admin                               │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ FASE 3: Sistema de Catálogo (Commit 5080ee1)                    │
+│  - Placeholder universal: {{PRODUCTOS_CATALOGO}}               │
+│  - inyectarCatalogo(prompt, productos)                         │
+│  - Formateo por categorías automático                          │
+│  - Manejo productos no disponibles                             │
+│  - 1,088 líneas (detector + docs)                              │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ FASE 4: Agente Universal (Commit 0ef564a)                       │
+│  - agente-universal.ts (458 líneas)                            │
+│  - Se adapta a CUALQUIER industria dinámicamente               │
+│  - 4 tonos de personalidad: casual/profesional/juvenil/elegante│
+│  - Vocabulario adaptativo (6+ industrias preconfiguradas)      │
+│  - 3 estrategias: especializado/universal/automatico           │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ FASE 5: Multi-Provider IA (Commit 3f6ff3a)                      │
+│  - ClienteIA unificado (Gemini + OpenAI)                       │
+│  - Fallback automático (Gemini → OpenAI → keywords)            │
+│  - Optimización de costos (Gemini first, más barato)           │
+│  - Integración CRM en flujo de mensajes                        │
+└─────────────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ FASE 6: Sistema de Notas + Multilanguage (Commits 725f0f6, 25a2dea)│
+│  - Memoria persistente: [[NOTA_AGENTE:{...}]]                  │
+│  - 13 idiomas soportados (instruccionIdioma())                 │
+│  - Detección automática: navigator.language                    │
+│  - CRUD completo de notas (580 líneas)                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Total de líneas del sistema de plantillas:** ~10,000 líneas de código productivo
+
+#### 4.3.2. Especializado vs Universal
+
+**Decisión de Diseño: Estrategia Híbrida**
+
+El sistema usa estrategia "automatico" que decide inteligentemente:
+
+```typescript
+// src/lib/templates/vendedor/index.ts
+export function obtenerPromptSegunEstrategia(params: {
+  industria: string;
+  catalogo: Producto[];
+  perfil_cliente?: PerfilCliente;
+  estrategia: 'especializado' | 'universal' | 'automatico';
+}): string {
+  
+  const { industria, estrategia } = params;
+  
+  if (estrategia === 'automatico') {
+    // Si existe especializado → usa especializado (mejor UX)
+    if (tieneTemplateEspecifico(industria)) {
+      return obtenerTemplateVendedor(industria);
+    }
+    // Si no existe → usa universal (máxima flexibilidad)
+    return obtenerAgenteUniversal({
+      industria,
+      tono: 'profesional',
+      metadata: { nombre_negocio: '...', ... }
+    });
+  }
+  
+  // ... estrategias manuales
+}
+```
+
+**Casos de uso:**
+
+| Industria | Template usado | Razón |
+|-----------|---------------|-------|
+| restaurante | María (especializado) | Exists, better personality |
+| tienda_ropa | Sofía (especializado) | Exists, fashion expertise |
+| tecnologia | Alex (especializado) | Exists, tech specs handling |
+| gimnasio | Coach Mike (especializado) | Exists, motivational tone |
+| educacion | Prof. Ana (especializado) | Exists, tutoring style |
+| servicios | Luna (especializado) | Exists, consultative approach |
+| **floreria** | **Universal** | No specialized template |
+| **panaderia** | **Universal** | No specialized template |
+| **joyeria** | **Universal** | No specialized template |
+
+#### 4.3.3. Agente Universal - Arquitectura de Adaptación
+
+El agente universal se adapta dinámicamente sin código adicional:
+
+```typescript
+// src/lib/templates/vendedor/agente-universal.ts
+
+interface ConfiguracionUniversal {
+  industria: string; // Cualquier industria (infinitas posibilidades)
+  tono: 'casual' | 'profesional' | 'juvenil' | 'elegante';
+  metadata: {
+    nombre_negocio: string;
+    descripcion?: string;
+    objetivo_venta?: string; // ej: "incrementar ticket promedio"
+  };
+}
+
+export function obtenerAgenteUniversal(config: ConfiguracionUniversal): string {
+  const { industria, tono, metadata } = config;
+  
+  // 1. Vocabulario adaptativo según industria
+  const vocabulario = DICCIONARIO_INDUSTRIAS[industria] || VOCABULARIO_GENERICO;
+  // Ej restaurante: "recomendar", "platillo", "delicioso", "probar"
+  // Ej gimnasio: "motivar", "hermano", "vamos con todo", "dale"
+  
+  // 2. Personalidad según tono
+  const personalidad = TONOS_PERSONALIDAD[tono];
+  // Ej casual: "¡Hey! 😊", emojis frecuentes
+  // Ej profesional: "Buenos días. En qué puedo asistirle?"
+  
+  // 3. Instrucciones de objetivo
+  const objetivoInstruccion = metadata.objetivo_venta 
+    ? `Tu objetivo principal es: ${metadata.objetivo_venta}.` 
+    : '';
+  
+  // 4. Prompt composición dinámica
+  return `
+Eres un vendedor especializado en ${industria} para ${metadata.nombre_negocio}.
+${metadata.descripcion || ''}
+
+${personalidad}
+
+Vocabulario preferido: ${vocabulario.join(', ')}
+
+${objetivoInstruccion}
+
+{{PRODUCTOS_CATALOGO}}
+
+Instrucciones:
+- Usa el vocabulario específico de ${industria}
+- Mantén tono ${tono} en todas las interacciones
+- Solo ofrece productos del catálogo disponible
+- Si preguntan por productos no disponibles, ofrece alternativas
+`;
+}
+```
+
+**Ventajas del enfoque universal:**
+
+1. **Escalabilidad infinita:** Nueva industria = 0 líneas de código
+2. **Flexibilidad:** Cambiar tono sin crear nuevos agentes
+3. **Personalización:** Metadata permite ajustes finos
+4. **Mantenibilidad:** 1 archivo vs 50+ archivos especializados
+5. **A/B testing:** `obtenerAmbosPromptsParaComparar()` facilita experimentación
+
+**Desventajas:**
+
+1. **Menos específico:** Templates especializados tienen más contexto de industria
+2. **Menor personalidad:** Agentes especializados tienen nombres y backstories únicos
+3. **UX diferenciada:** María vs "vendedor genérico" afecta percepción
+
+**Solución actual: Híbrido** = Mejor de ambos mundos
+
+#### 4.3.4. Sistema de Catálogo - Inyección Dinámica
+
+Todos los agentes (especializados + universal) usan el mismo sistema de catálogo:
+
+```typescript
+// src/lib/templates/vendedor/index.ts
+
+interface Producto {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  categoria: string;
+  disponible: boolean;
+  variantes?: {
+    nombre: string;
+    opciones: string[];
+    precio_extra?: number;
+  }[];
+}
+
+export function inyectarCatalogo(
+  prompt: string, 
+  productos: Producto[]
+): string {
+  // 1. Formatear productos por categoría
+  const catalogoFormateado = formatearCatalogoParaPrompt(productos);
+  
+  // 2. Reemplazar placeholder
+  return prompt.replace('{{PRODUCTOS_CATALOGO}}', catalogoFormateado);
+}
+
+function formatearCatalogoParaPrompt(productos: Producto[]): string {
+  // Agrupar por categoría
+  const porCategoria = productos.reduce((acc, p) => {
+    if (!acc[p.categoria]) acc[p.categoria] = [];
+    acc[p.categoria].push(p);
+    return acc;
+  }, {} as Record<string, Producto[]>);
+  
+  // Formatear bonito
+  let catalogo = "Productos disponibles:\n\n";
+  
+  for (const [categoria, prods] of Object.entries(porCategoria)) {
+    catalogo += `CATEGORÍA: ${categoria.toUpperCase()}\n`;
+    
+    for (const p of prods) {
+      catalogo += `- ${p.nombre} ($${p.precio}) - ${p.descripcion}\n`;
+      catalogo += `  Disponible: ${p.disponible ? 'SÍ' : 'NO ⚠️'}\n`;
+      
+      if (p.variantes) {
+        catalogo += `  Variantes: ${p.variantes.map(v => v.nombre).join(', ')}\n`;
+      }
+    }
+    
+    catalogo += "\n";
+  }
+  
+  catalogo += `\nINSTRUCCIONES IMPORTANTES:
+- Solo puedes ofrecer productos que están "Disponible: SÍ"
+- Si preguntan por productos no disponibles, ofrece alternativas similares
+- Si preguntan por productos de otra industria, redirije amablemente
+`;
+  
+  return catalogo;
+}
+```
+
+**Ejemplo de salida:**
+
+```
+Productos disponibles:
+
+CATEGORÍA: HAMBURGUESAS
+- Classic Burger ($8.99) - Carne 100% res, lechuga, tomate
+  Disponible: SÍ
+  Variantes: Tamaño, Queso
+
+- Bacon Burger ($10.99) - Con tocino crujiente y queso cheddar
+  Disponible: SÍ
+
+CATEGORÍA: BEBIDAS
+- Coca Cola ($2.50) - Lata 355ml
+  Disponible: NO ⚠️
+
+INSTRUCCIONES IMPORTANTES:
+- Solo puedes ofrecer productos que están "Disponible: SÍ"
+- Si preguntan por productos no disponibles, ofrece alternativas similares
+- Si preguntan por productos de otra industria, redirije amablemente
+```
+
+**Resultado:** Agentes NUNCA inventan productos, siempre ofrecen exactamente lo que hay en stock.
+
+#### 4.3.5. Sistema de Notas - Memoria Persistente
+
+Protocolo de marcadores `[[NOTA_AGENTE:{...}]]` permite memoria entre conversaciones:
+
+```typescript
+// src/lib/agentes/notas-agente.ts
+
+interface Nota {
+  id_nota: string;
+  id_negocio: string;
+  id_agente: 'vendedor' | 'admin' | 'orquestador';
+  session_id?: string;
+  tipo: 'preferencia' | 'contexto' | 'recordatorio' | 'alerta';
+  contenido: string;
+  metadata?: Record<string, any>;
+  created_at: Date;
+}
+
+// 1. Inyectar notas previas en prompt
+export async function inyectarNotasEnPrompt(
+  prompt: string,
+  id_negocio: string,
+  session_id?: string
+): Promise<string> {
+  const notas = await obtenerNotasAgente(id_negocio, session_id);
+  
+  if (notas.length === 0) return prompt;
+  
+  const notasFormateadas = notas
+    .map(n => `[${n.tipo.toUpperCase()}] ${n.contenido}`)
+    .join('\n');
+  
+  return `${prompt}\n\n=== NOTAS PREVIAS ===\n${notasFormateadas}\n`;
+}
+
+// 2. Parsear notas de respuesta IA
+export function procesarNotasDeRespuesta(respuesta: string): {
+  respuestaLimpia: string;
+  notas: Omit<Nota, 'id_nota' | 'created_at'>[];
+} {
+  const regex = /\[\[NOTA_AGENTE:(.*?)\]\]/gi;
+  const notas: any[] = [];
+  let match;
+  
+  while ((match = regex.exec(respuesta)) !== null) {
+    try {
+      const notaData = JSON.parse(match[1]);
+      notas.push(notaData);
+    } catch (e) {
+      console.error('Error parseando nota:', e);
+    }
+  }
+  
+  // Limpiar respuesta
+  const respuestaLimpia = respuesta.replace(regex, '').trim();
+  
+  return { respuestaLimpia, notas };
+}
+
+// 3. Guardar notas en BD
+export async function guardarNotas(
+  notas: Omit<Nota, 'id_nota' | 'created_at'>[],
+  supabase: SupabaseClient
+): Promise<void> {
+  if (notas.length === 0) return;
+  
+  const { error } = await supabase
+    .from('notas_agente')
+    .insert(notas);
+  
+  if (error) throw error;
+}
+```
+
+**Flujo completo en /api/constructor/mensaje:**
+
+```typescript
+// POST /api/constructor/mensaje
+export async function POST(req: Request) {
+  const { mensaje, id_negocio, session_id } = await req.json();
+  
+  // 1. Cargar datos
+  const negocio = await getNegocio(id_negocio);
+  const productos = await getProductos(id_negocio);
+  const perfil = await getPerfilCliente(session_id);
+  
+  // 2. Obtener template
+  let prompt = obtenerTemplateVendedor(negocio.tipo_negocio);
+  
+  // 3. Inyectar catálogo
+  prompt = inyectarCatalogo(prompt, productos);
+  
+  // 4. Inyectar notas previas
+  prompt = await inyectarNotasEnPrompt(prompt, id_negocio, session_id);
+  
+  // 5. Generar respuesta con IA
+  const respuesta = await clienteIA.chat([
+    { role: 'system', content: prompt },
+    { role: 'user', content: mensaje }
+  ]);
+  
+  // 6. Procesar notas
+  const { respuestaLimpia, notas } = procesarNotasDeRespuesta(respuesta);
+  
+  // 7. Guardar notas
+  await guardarNotas(notas.map(n => ({
+    ...n,
+    id_negocio,
+    id_agente: 'vendedor',
+    session_id
+  })), supabase);
+  
+  // 8. Retornar respuesta limpia
+  return Response.json({ respuesta: respuestaLimpia });
+}
+```
+
+**Ejemplo de interacción:**
+
+```
+// Conversación 1:
+Usuario: "Quiero un café negro sin azúcar"
+IA: "¡Listo! Tu café negro sin azúcar. [[NOTA_AGENTE:{"tipo":"preferencia","contenido":"Cliente prefiere café negro sin azúcar"}]]"
+
+// Sistema automáticamente:
+// 1. Parsea nota
+// 2. INSERT en notas_agente
+// 3. Usuario ve: "¡Listo! Tu café negro sin azúcar."
+
+// Días después, conversación 2:
+// Sistema carga notas previas automáticamente:
+// Prompt incluye: "[PREFERENCIA] Cliente prefiere café negro sin azúcar"
+
+Usuario: "Hola de nuevo"
+IA: "¡Hola! ¿El de siempre? Café negro sin azúcar ☕"
+// ✅ Agente recuerda preferencias sin que usuario las repita
+```
+
+#### 4.3.6. Multilanguage - Soporte 13 Idiomas
+
+El sistema detecta automáticamente el idioma del navegador y prepend instrucciones:
+
+```typescript
+// src/lib/templates/constructor.ts
+
+export function instruccionIdioma(codigoIdioma: string): string {
+  const instrucciones: Record<string, string> = {
+    es: "Responde SIEMPRE en español castellano, sin importar en qué idioma te escriban.",
+    en: "Always respond in English, regardless of the language used in messages.",
+    pt: "Responda SEMPRE em português, independentemente do idioma usado.",
+    fr: "Répondez TOUJOURS en français, quelle que soit la langue utilisée.",
+    de: "Antworten Sie IMMER auf Deutsch, unabhängig von der verwendeten Sprache.",
+    it: "Rispondi SEMPRE in italiano, indipendentemente dalla lingua utilizzata.",
+    nl: "Reageer ALTIJD in het Nederlands, ongeacht de gebruikte taal.",
+    ar: "أجب دائمًا باللغة العربية، بغض النظر عن اللغة المستخدمة.",
+    zh: "始终用中文回复，无论使用何种语言。",
+    ja: "使用される言語に関係なく、常に日本語で返信してください。",
+    ko: "사용된 언어에 관계없이 항상 한국어로 응답하세요.",
+    ru: "Всегда отвечайте на русском языке, независимо от используемого языка.",
+    hi: "उपयोग की गई भाषा की परवाह किए बिना हमेशा हिंदी में उत्तर दें।"
+  };
+  
+  return instrucciones[codigoIdioma] || instrucciones.es;
+}
+```
+
+**Integración en ChatWindow:**
+
+```typescript
+// components/constructor/ChatWindow.tsx
+const idiomaNavegador = navigator.language.split('-')[0]; // "es-MX" → "es"
+
+// Enviado en cada request:
+fetch('/api/constructor/orquestador', {
+  method: 'POST',
+  body: JSON.stringify({
+    mensaje,
+    idioma: idiomaNavegador // Propagado automáticamente
+  })
+});
+```
+
+**Procesamiento en API:**
+
+```typescript
+// api/constructor/orquestador/route.ts
+const { mensaje, idioma } = await req.json();
+
+// Prepend instrucción de idioma
+const instruccionLang = instruccionIdioma(idioma || 'es');
+const promptFinal = `${instruccionLang}\n\n${promptBase}`;
+```
+
+**Resultado:** Usuario en Francia ve UI en francés, usuario en Japón ve UI en japonés, etc. **Sin configuración manual**.
+
 ---
 
 ## 5. Base de Datos
