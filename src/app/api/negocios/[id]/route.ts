@@ -31,10 +31,10 @@ export async function GET(
 ) {
   try {
     const supabase = await createSupabaseServerClient();
-    
+
     // Get authenticated user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !user) {
       console.error('Auth error:', userError);
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -83,10 +83,10 @@ export async function PATCH(
 ) {
   try {
     const supabase = await createSupabaseServerClient();
-    
+
     // Get authenticated user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !user) {
       console.error('Auth error:', userError);
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -165,10 +165,10 @@ export async function DELETE(
 ) {
   try {
     const supabase = await createSupabaseServerClient();
-    
+
     // Get authenticated user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !user) {
       console.error('Auth error:', userError);
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -200,5 +200,3 @@ export async function DELETE(
     );
   }
 }
-
-

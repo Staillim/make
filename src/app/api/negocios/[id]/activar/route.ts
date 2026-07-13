@@ -23,7 +23,7 @@ export async function POST(
       .single();
 
     if (error) {
-      console.error('Activate business error:', error);
+      console.error("Activate business error:", error);
       return NextResponse.json(
         { error: "Error al activar negocio" },
         { status: 500 }
@@ -39,7 +39,7 @@ export async function POST(
       fecha_activacion: (negocio as { fecha_activacion: string | null }).fecha_activacion,
     });
   } catch (error) {
-    console.error('Activate business error:', error);
+    console.error("Activate business error:", error);
     return NextResponse.json(
       { error: "Error al activar negocio" },
       { status: 500 }
