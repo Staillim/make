@@ -12,6 +12,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.98.0",
     "clsx": "^2.1.1",
+    "lightningcss": "^1.31.1",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "openai": "^4.78.0",
@@ -19,8 +20,12 @@
     "react-dom": "19.2.3",
     "zustand": "^5.0.11"
   },
+  "//optionalDeps": "Forzamos la descarga del binario nativo de lightningcss para linux x64 (plataforma de Netlify). Sin esto, Turbopack falla al cargar el .node en build.",
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.31.1"
+  },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.15.8",
+    "@netlify/plugin-nextjs": "^5.15.12",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
