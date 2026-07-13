@@ -1,0 +1,1 @@
+export { useNegocios } from './useNegocios';

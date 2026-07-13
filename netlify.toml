@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# El catch-all `from="/*" to="/index.html"` que estaba aquí rompía el App Router
+# de Next 16. @netlify/plugin-nextjs maneja el routing solo; no hace falta
+# (ni conviene) declarar redirects manuales a index.html.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
