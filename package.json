@@ -20,8 +20,8 @@
     "react-dom": "19.2.3",
     "zustand": "^5.0.11"
   },
-  "//optionalDeps": "Forzamos la descarga del binario nativo de lightningcss para linux x64 (plataforma de Netlify). Sin esto, Turbopack falla al cargar el .node en build.",
   "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.2.1",
     "lightningcss-linux-x64-gnu": "^1.31.1"
   },
   "devDependencies": {

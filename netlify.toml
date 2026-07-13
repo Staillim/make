@@ -1,17 +1,21 @@
 [build]
-  command = "npm run build"
+  # Netlify cachea node_modules entre builds. Para que los binarios nativos de
+  # lightningcss y @tailwindcss/oxide se bajen para la plataforma correcta
+  # (linux x64), forzamos un install limpio cada build. Sin esto, los
+  # optionalDependencies se quedan vacíos y Turbopack falla con
+  # "Cannot find native binding".
+  command = "rm -rf node_modules/.cache && npm ci --include=optional || (rm -rf node_modules package-lock.json && npm install --include=optional)"
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # El plugin @netlify/plugin-nextjs 5.15.12 requiere Node 22 mínimo.
+  # Si defines NODE_VERSION=20, el plugin avisa y puede fallar.
+  NODE_VERSION = "22"
   NPM_VERSION = "10"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# El catch-all `from="/*" to="/index.html"` que estaba aquí rompía el App Router
-# de Next 16. @netlify/plugin-nextjs maneja el routing solo; no hace falta
-# (ni conviene) declarar redirects manuales a index.html.
 [[headers]]
   for = "/*"
   [headers.values]
