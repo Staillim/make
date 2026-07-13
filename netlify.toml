@@ -1,10 +1,14 @@
 [build]
   # Netlify cachea node_modules entre builds. Para que los binarios nativos de
   # lightningcss y @tailwindcss/oxide se bajen para la plataforma correcta
-  # (linux x64), forzamos un install limpio cada build. Sin esto, los
-  # optionalDependencies se quedan vacíos y Turbopack falla con
+  # (linux x64), forzamos un install limpio con --include=optional. Sin esto,
+  # los optionalDependencies se quedan vacíos y Turbopack falla con
   # "Cannot find native binding".
-  command = "rm -rf node_modules/.cache && npm ci --include=optional || (rm -rf node_modules package-lock.json && npm install --include=optional)"
+  #
+  # IMPORTANTE: cuando definís `command` custom, Netlify NO agrega automáticamente
+  # `npm run build` — hay que invocarlo explícitamente al final, o el plugin
+  # falla con "Your publish directory was not found at: .next".
+  command = "npm ci --include=optional && npm run build"
   publish = ".next"
 
 [build.environment]
