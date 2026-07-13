@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import type { Database } from "@/lib/database.types";
 
 export async function POST(
@@ -15,7 +15,7 @@ export async function POST(
       fecha_activacion: new Date().toISOString(),
       url_tienda: `/tienda/${id}`,
     };
-    const { data: negocio, error } = await supabaseAdmin
+    const { data: negocio, error } = await getSupabaseAdmin()
       .from("negocios")
       .update(update)
       .eq("id_negocio", id)

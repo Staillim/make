@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useNegocioStore } from "@/lib/store";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import type { Negocio } from "@/types";
 
 interface UseNegociosReturn {
@@ -56,7 +56,7 @@ export function useNegocios(): UseNegociosReturn {
       setError(null);
 
       console.log('cargarNegocios - making supabase query');
-      const { data: negocios, error } = await supabase
+      const { data: negocios, error } = await getSupabase()
         .from('negocios')
         .select(`
           id_negocio,
@@ -103,7 +103,7 @@ export function useNegocios(): UseNegociosReturn {
         throw new Error('El nombre del negocio es requerido');
       }
 
-      const { data: negocio, error } = await supabase
+      const { data: negocio, error } = await getSupabase()
         .from('negocios')
         .insert({
           id_usuario: user!.id,
@@ -147,7 +147,7 @@ export function useNegocios(): UseNegociosReturn {
       ensureAuth();
       setError(null);
 
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('negocios')
         .delete()
         .eq('id_negocio', id)
@@ -189,7 +189,7 @@ export function useNegocios(): UseNegociosReturn {
         throw new Error('No hay campos válidos para actualizar');
       }
 
-      const { data: negocio, error } = await supabase
+      const { data: negocio, error } = await getSupabase()
         .from('negocios')
         .update(updateData)
         .eq('id_negocio', id)

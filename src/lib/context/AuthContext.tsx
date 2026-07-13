@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, AuthError, Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import type { Database } from "@/lib/database.types";
 
 // Perfil del usuario en NUESTRA tabla `usuarios` (no en auth.users de Supabase).
@@ -38,7 +38,7 @@ async function syncUserToDatabase(user: User) {
     return;
   }
 
-  const { data: existingUser, error: selectError } = await supabase
+  const { data: existingUser, error: selectError } = await getSupabase()
     .from("usuarios")
     .select("id_usuario")
     .eq("id_usuario", user.id)
@@ -66,7 +66,7 @@ async function syncUserToDatabase(user: User) {
     plan: "free",
   };
 
-  const { error: insertError } = await supabase
+  const { error: insertError } = await getSupabase()
     .from("usuarios")
     .insert(userData);
 
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function loadProfile(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from("usuarios")
       .select("id_usuario, nombre, email, plan")
       .eq("id_usuario", userId)
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Sesión inicial
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getSupabase().auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user?.id) {
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Cambios de sesión
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = getSupabase().auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     metadata?: { [key: string]: unknown }
   ) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await getSupabase().auth.signUp({
         email,
         password,
         options: { data: metadata },
@@ -166,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await getSupabase().auth.signInWithPassword({ email, password });
     return { error };
   };
 
@@ -176,7 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ? `${window.location.origin}/dashboard`
         : `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/dashboard`;
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await getSupabase().auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
     });
@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await getSupabase().auth.signOut();
 
     if (typeof window !== "undefined") {
       document.cookie =
