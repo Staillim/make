@@ -19,7 +19,7 @@ interface FormErrors {
 }
 
 export function SupabaseLoginForm() {
-  const { signIn, signInWithGoogle, loading: authLoading } = useAuth();
+  const { signIn } = useAuth();
   const router = useRouter();
   
   const [form, setForm] = useState<FormData>({
@@ -71,7 +71,7 @@ export function SupabaseLoginForm() {
     const { error } = await signIn(form.email, form.password);
 
     if (error) {
-      setErrors({ password: error.message });
+      setErrors({ password: error });
     } else {
       // Success - redirect to dashboard
       router.push("/dashboard");
@@ -79,11 +79,11 @@ export function SupabaseLoginForm() {
     setLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    const { error } = await signInWithGoogle();
-    if (error) {
-      console.error('Google sign in error:', error.message);
-    }
+  const handleGoogleSignIn = () => {
+    // Google OAuth requiere cliente OAuth en Supabase o un proveedor externo.
+    // Por ahora con SQLite local está deshabilitado. Se puede re-habilitar
+    // añadiendo OAuth a través de un provider como NextAuth o Auth.js.
+    alert("Login con Google no disponible en este entorno. Usa email + contraseña.");
   };
 
   return (
@@ -168,7 +168,7 @@ export function SupabaseLoginForm() {
           <Button
             type="submit"
             fullWidth
-            loading={loading || authLoading}
+            loading={loading}
             className="bg-indigo-600 hover:bg-indigo-700"
           >
             Iniciar sesión
@@ -184,10 +184,9 @@ export function SupabaseLoginForm() {
         {/* Google login */}
         <Button 
           variant="outline" 
-          fullWidth 
+          fullWidth
           className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
           onClick={handleGoogleSignIn}
-          disabled={authLoading}
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5 mr-2">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

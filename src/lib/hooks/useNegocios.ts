@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useNegocioStore } from "@/lib/store";
-import { getSupabase } from "@/lib/supabase";
 import type { Negocio } from "@/types";
 
 interface UseNegociosReturn {
@@ -16,212 +15,112 @@ interface UseNegociosReturn {
   recargarNegocios: () => Promise<void>;
 }
 
+async function jsonOrError<T>(r: Response): Promise<{ data: T | null; error: string | null }> {
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    return { data: null, error: (body as { error?: string }).error || `HTTP ${r.status}` };
+  }
+  const body = await r.json();
+  return { data: body as T, error: null };
+}
+
 export function useNegocios(): UseNegociosReturn {
-  const { user, session } = useAuth();
-  const { 
-    negocios, 
-    setNegocios, 
-    agregarNegocio, 
+  const { user } = useAuth();
+  const {
+    negocios,
+    setNegocios,
+    agregarNegocio,
     eliminarNegocio: eliminarNegocioStore,
-    actualizarNegocio: actualizarNegocioStore 
+    actualizarNegocio: actualizarNegocioStore,
   } = useNegocioStore();
-  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to set session cookie for API calls (simplified since AuthContext handles it)
-  const ensureAuth = () => {
-    if (!user || !session?.access_token) {
-      throw new Error('Usuario no autenticado');
+  const cargarNegocios = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const r = await fetch("/api/negocios", { credentials: "include" });
+      const { data, error } = await jsonOrError<{ negocios: Negocio[] }>(r);
+      if (error) {
+        if (error.includes("No autorizado") || error.includes("401")) {
+          setNegocios([]);
+          return;
+        }
+        throw new Error(error);
+      }
+      setNegocios(data?.negocios ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Carga única al montar / cambiar de usuario. Antes había un bloque
-  // duplicado idéntico al de abajo que disparaba dos fetches por sesión.
   useEffect(() => {
-    if (user && session) {
+    if (user) {
       cargarNegocios();
     } else {
       setNegocios([]);
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, session]);
-
-  const cargarNegocios = async () => {
-    try {
-      console.log('cargarNegocios - starting, user:', user?.id);
-      ensureAuth();
-      setLoading(true);
-      setError(null);
-
-      console.log('cargarNegocios - making supabase query');
-      const { data: negocios, error } = await getSupabase()
-        .from('negocios')
-        .select(`
-          id_negocio,
-          id_usuario,
-          nombre,
-          estado,
-          fecha_creacion,
-          fecha_activacion,
-          url_tienda,
-          created_at,
-          updated_at
-        `)
-        .eq('id_usuario', user!.id)
-        .order('fecha_creacion', { ascending: false });
-
-      console.log('cargarNegocios - query result:', { negocios, error });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      setNegocios(negocios || []);
-      console.log('cargarNegocios - success, loaded', negocios?.length || 0, 'negocios');
-    } catch (err) {
-      console.error('Error loading businesses:', err);
-      if (err instanceof Error && err.message === 'Usuario no autenticado') {
-        setError('Sesión expirada. Por favor, inicia sesión de nuevo.');
-        // Clear user state and redirect to login
-        window.location.href = '/login?redirect=dashboard';
-      } else {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user]);
 
   const crearNegocio = async (nombre: string): Promise<Negocio | null> => {
     try {
-      ensureAuth();
       setError(null);
-
-      if (!nombre || nombre.trim() === '') {
-        throw new Error('El nombre del negocio es requerido');
+      if (!nombre || nombre.trim() === "") {
+        throw new Error("El nombre del negocio es requerido");
       }
-
-      const { data: negocio, error } = await getSupabase()
-        .from('negocios')
-        .insert({
-          id_usuario: user!.id,
-          nombre: nombre.trim(),
-          estado: 'en_configuracion'
-        })
-        .select(`
-          id_negocio,
-          id_usuario,
-          nombre,
-          estado,
-          fecha_creacion,
-          fecha_activacion,
-          url_tienda,
-          created_at,
-          updated_at
-        `)
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      // Add to store
-      agregarNegocio(negocio);
-      
-      return negocio;
+      const r = await fetch("/api/negocios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ nombre: nombre.trim() }),
+      });
+      const { data, error } = await jsonOrError<{ negocio: Negocio }>(r);
+      if (error || !data) throw new Error(error || "No se pudo crear");
+      agregarNegocio(data.negocio);
+      return data.negocio;
     } catch (err) {
-      console.error('Error creating business:', err);
-      if (err instanceof Error && err.message === 'Usuario no autenticado') {
-        setError('Sesión expirada. Por favor, inicia sesión de nuevo.');
-      } else {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      }
+      setError(err instanceof Error ? err.message : "Error desconocido");
       return null;
     }
   };
 
   const eliminarNegocio = async (id: string): Promise<boolean> => {
     try {
-      ensureAuth();
       setError(null);
-
-      const { error } = await getSupabase()
-        .from('negocios')
-        .delete()
-        .eq('id_negocio', id)
-        .eq('id_usuario', user!.id);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      // Remove from store
+      const r = await fetch(`/api/negocios?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const { error } = await jsonOrError<{ success: boolean }>(r);
+      if (error) throw new Error(error);
       eliminarNegocioStore(id);
-      
       return true;
     } catch (err) {
-      console.error('Error deleting business:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setError(err instanceof Error ? err.message : "Error desconocido");
       return false;
     }
   };
 
   const actualizarNegocio = async (id: string, data: Partial<Negocio>): Promise<boolean> => {
     try {
-      ensureAuth();
       setError(null);
-
-      // Filter allowed fields for update (whitelist compartido con el backend).
-      // El `estado` se castea a EstadoNegocio para que el tipo estricto del
-      // Update no rechace el string que viene de Partial<Negocio>.
-      const allowedFields: Array<keyof Negocio> = ['nombre', 'estado', 'url_tienda'];
-      const updateData: Partial<Negocio> = {};
-
-      for (const [key, value] of Object.entries(data)) {
-        if (allowedFields.includes(key as keyof Negocio) && value !== undefined) {
-          (updateData as Record<string, unknown>)[key] = value;
-        }
-      }
-
-      if (Object.keys(updateData).length === 0) {
-        throw new Error('No hay campos válidos para actualizar');
-      }
-
-      const { data: negocio, error } = await getSupabase()
-        .from('negocios')
-        .update(updateData)
-        .eq('id_negocio', id)
-        .eq('id_usuario', user!.id)
-        .select(`
-          id_negocio,
-          id_usuario,
-          nombre,
-          estado,
-          fecha_creacion,
-          fecha_activacion,
-          url_tienda,
-          created_at,
-          updated_at
-        `)
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (!negocio) {
-        throw new Error('Negocio no encontrado o sin permisos');
-      }
-      
-      // Update in store
-      actualizarNegocioStore(id, negocio);
-      
+      const r = await fetch(`/api/negocios/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      const { data: respData, error } = await jsonOrError<{ negocio: Negocio }>(r);
+      if (error) throw new Error(error);
+      if (respData?.negocio) actualizarNegocioStore(id, respData.negocio);
       return true;
     } catch (err) {
-      console.error('Error updating business:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setError(err instanceof Error ? err.message : "Error desconocido");
       return false;
     }
   };

@@ -35,7 +35,7 @@ export function WelcomeEmpty() {
         </div>
 
         <h2 className="text-3xl font-bold text-zinc-900 dark:text-white mb-3">
-          ¡Bienvenido, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || "emprendedor"}!
+          ¡Bienvenido, {user?.nombre || user?.email?.split('@')[0] || "emprendedor"}!
         </h2>
         <p className="text-zinc-500 mb-8 leading-relaxed text-lg">
           Crea tu primer negocio autónomo con inteligencia artificial.

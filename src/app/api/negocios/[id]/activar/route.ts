@@ -1,48 +1,48 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
-import type { Database } from "@/lib/database.types";
+import { getDb } from "@/lib/db";
 
+// POST /api/negocios/[id]/activar — marca un negocio como activo y genera
+// el slug/url de la tienda pública.
 export async function POST(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-
-    // Update in database
-    const update: Database["public"]["Tables"]["negocios"]["Update"] = {
-      estado: "activo",
-      fecha_activacion: new Date().toISOString(),
-      url_tienda: `/tienda/${id}`,
-    };
-    const { data: negocio, error } = await getSupabaseAdmin()
-      .from("negocios")
-      .update(update)
-      .eq("id_negocio", id)
-      .select()
-      .single();
-
-    if (error) {
+    const db = getDb();
+    const result = await db
+      .from<{
+        id_negocio: string;
+        estado: string;
+        url_tienda: string | null;
+        fecha_activacion: string | null;
+      }>("negocios")
+      .update({
+        estado: "activo",
+        fecha_activacion: new Date().toISOString(),
+        url_tienda: `/tienda/${id}`,
+      })
+      .eq("id_negocio", id);
+    const data = result.data as Array<{
+      id_negocio: string;
+      estado: string;
+      url_tienda: string | null;
+      fecha_activacion: string | null;
+    }> | null;
+    const error = result.error;
+    if (error || !data || !data[0]) {
       console.error("Activate business error:", error);
-      return NextResponse.json(
-        { error: "Error al activar negocio" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Error al activar negocio" }, { status: 500 });
     }
-
-    // El select de Supabase devuelve un union con `null` por el `.single()`.
-    // Forzamos el shape esperado para la respuesta.
+    const row = data[0];
     return NextResponse.json({
-      id_negocio: (negocio as { id_negocio: string }).id_negocio,
-      estado: (negocio as { estado: string }).estado,
-      url_tienda: (negocio as { url_tienda: string | null }).url_tienda,
-      fecha_activacion: (negocio as { fecha_activacion: string | null }).fecha_activacion,
+      id_negocio: row.id_negocio,
+      estado: row.estado,
+      url_tienda: row.url_tienda,
+      fecha_activacion: row.fecha_activacion,
     });
   } catch (error) {
     console.error("Activate business error:", error);
-    return NextResponse.json(
-      { error: "Error al activar negocio" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error al activar negocio" }, { status: 500 });
   }
 }

@@ -14,7 +14,7 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { profile, signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
@@ -64,15 +64,15 @@ export function Sidebar() {
           <div className="flex items-center gap-2 mb-2">
             <Crown size={16} className="text-yellow-500" />
             <span className="text-sm font-medium text-white capitalize">
-              Plan {profile?.plan || "free"}
+              Plan {user?.plan || "free"}
             </span>
           </div>
           <p className="text-xs text-zinc-500 mb-3">
-            {profile?.plan === "premium"
+            {user?.plan === "premium"
               ? "Acceso completo a todas las funciones"
               : "Actualiza para desbloquear más funciones"}
           </p>
-          {profile?.plan !== "premium" && (
+          {user?.plan !== "premium" && (
             <button className="w-full text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
               Actualizar a Premium →
             </button>
@@ -84,14 +84,14 @@ export function Sidebar() {
       <div className="p-4 border-t border-zinc-800">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-            {profile?.nombre?.charAt(0)?.toUpperCase() || "U"}
+            {user?.nombre?.charAt(0)?.toUpperCase() || "U"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">
-              {profile?.nombre || "Usuario"}
+              {user?.nombre || "Usuario"}
             </p>
             <p className="text-xs text-zinc-500 truncate">
-              {profile?.email || ""}
+              {user?.email || ""}
             </p>
           </div>
         </div>

@@ -1,0 +1,5 @@
+# Local data (SQLite) — la DB se regenera en cada clone
+data/
+*.db
+*.db-shm
+*.db-wal
